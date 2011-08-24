@@ -14,6 +14,9 @@
 img.screen {
  width: 800px ;
  height: 600px;
+ border-style:solid;
+ border-width:1px;
+ border-color:#98bf21;
 }
 </style>
 
@@ -23,7 +26,19 @@ img.screen {
     <h1>SAP Hadoop MapReduce Example (Log Processing)</h1>
     <ul id="docs" class="gc-topnav-tabs">
         <li>
-          <a href="codeLab.html" class="selected" title="Log Processing">[1]</a>
+          <a href="../../codeLab.html" title="SAP Hadoop I/O and ETL API (Basic)">[1]</a>
+        </li>
+
+        <li>
+          <a href="../../codeLabShs.html" title="SAP Task Force Web App">[2]</a>
+        </li>
+
+        <li>
+          <a href="../../codeLabBc.html" title="Biz Case: People You May Know">[3]</a>
+        </li>
+
+        <li>
+          <a href="log.html" class="selected" title="Log Processing/Product Trend">[E1]</a>
         </li>
     </ul>
 </div>
@@ -40,15 +55,23 @@ img.screen {
                 </li>
 
                 <li>
-                    <a href="#Prerequisites" title="Prerequisites">Prerequisites</a>
+                    <a href="#Prerequisites1" title="Prerequisites1">Prerequisites 1</a>
                 </li>
 
                 <li>
-                    <a href="#Ioapi" title="Hdfs & I/O API">Hdfs & I/O API</a>
+                    <a href="#Prerequisites2" title="Prerequisites2">Prerequisites 2</a>
                 </li>
 
                 <li>
-                    <a href="#Etlapi" title="Hive & ETL API">Hive & ETL API</a>
+                    <a href="#RunTheMapReduceExample" title="Run The MapReduce Example">Run the MapReduce Example</a>
+                </li>
+
+                <li>
+                    <a href="#TheLogProcessingLogic" title="The Log Processing Logic">The Log Processing Logic</a>
+                </li>
+
+                <li>
+                    <a href="#FindingTheProductTrend" title="Finding The Product Trend">Finding The Product Trend</a>
                 </li>
 
                 <li>
@@ -76,9 +99,9 @@ img.screen {
     If you wish to parse different log files in different format, please change the MapReduce source code accordingly.
 </p>
 
-<a name="Prerequisites"></a>
+<a name="Prerequisites1"></a>
 
-<h1>Prerequisites</h1>
+<h1>Prerequisites 1</h1>
 
 <p>
     <ul class="bulletlist">
@@ -98,20 +121,36 @@ img.screen {
                 </code>
             </pre>
         </li>
-        <li> The MapReduce code for this example is compressed as a JAR file and stored on the HDFS.<br/> Please browse the HDFS and download <a href="http://hadoop06:50075/browseDirectory.jsp?dir=%2Fuser%2Fexamples%2FLogProcessing&namenodeInfoPort=50070" target="_new">LogProcessingExample.jar</a> to your local folder, for example: c:\hadoop_example\ </li>
-        <li> Download one or more <a href="http://hadoop06:50075/browseDirectory.jsp?dir=%2Fuser%2Fexamples%2FLogProcessing&namenodeInfoPort=50070" target="_new">sample input log files</a> from HDFS to your local folder, for example: c:\hadoop_example\ </li>
-        <li> (Optional) Request access to SAP Hadoop cluster by sending your employee ID to <a href="mailto:dewei.sun@sap.com">me</a> or you can just use the test account in the code snippets</li>
+        <li> The MapReduce code for this example is compressed as a JAR file and stored on the HDFS.<br/> Please download <a href="sap_hadoop_example.jar" target="_new">sap_hadoop_example.jar</a> to your local folder, for example: c:\hadoop_example\ </li>
+        <li> Download one or more sample dated input log files (<a href="localhost_access_log.2011-08-01.txt" target="_new">2011-08-01.txt</a>, <a href="localhost_access_log.2011-08-02.txt" target="_new">2011-08-02.txt</a>, <a href="localhost_access_log.2011-08-03.txt" target="_new">2011-08-03.txt</a>, <a href="localhost_access_log.2011-08-04.txt" target="_new">2011-08-04.txt</a>) to your local folder, for example: c:\hadoop_example\ (You need at least one log file to run the example)</li>
+        <li> (Optional) Request access to SAP Hadoop cluster by sending your employee ID to <a href="mailto:dewei.sun@sap.com">me</a> or you can just use the test account coded in the example source</li>
     </ul>
     <br />
     Please contact <a href="mailto:dewei.sun@sap.com">Dewei Sun</a>, if there is any error opening above links.
 </p>
 
-<a name="Ioapi"></a>
+<a name="Prerequisites2"></a>
 
-<h1>Upload the sample log files</h1>
+<h1>Prerequisites 2</h1>
 
 <p>
-    1. Upload the sample log files to your HDFS personal folder via <a href="http://hadoop.pal.sap.corp:8080/shs/jspv/dashboard.jsp" target="_new">Task Force</a> Web Application.
+    If you wish to modify the code and parse your own log, then please do the following steps after completing Prerequisites 1.
+    <ul class="bulletlist">
+        <li> Install JDK 1.6 or higher from <a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html" target="_new">here</a></li>
+        <li> Install Apache Ant and setup your ANT_HOME environment variable and add ANT_HOME\bin to your PATH environment variable, guidelines can be found <a href="http://ant.apache.org/" target="_new">here</a>. </li>
+        <li> Download the compressed code lab <a href="LogProcessingExample.zip" target="_new"></a> and uncompress it to your local harddrive, for example, if you uncompress it under C:\, then a folder will be created as C:\LogProcessingExample\</li>
+        <li> Make sure you can build/compile by opening a Command Prompt and type in "ant" after changing to the new folder created by above step, for example: C:\LogProcessingExample\</li>
+    </ul>
+    <br />
+    Please contact <a href="mailto:dewei.sun@sap.com">Dewei Sun</a>, if there is any error opening above links.
+</p>
+
+<a name="RunTheMapReduceExample"></a>
+
+<h1>Run the MapReduce Example</h1>
+
+<p>
+    1. Upload the sample log files to your HDFS personal folder or the visitor HDFS folder (I123456/hadoopsap) via <a href="http://hadoop.pal.sap.corp:8080/shs/jspv/dashboard.jsp" target="_new">Task Force</a> Web Application.
 
     <br /><br />
 
@@ -128,203 +167,315 @@ img.screen {
     <br /><br />
     In case you need some guidelines about how to use <a href="http://hadoop.pal.sap.corp:8080/shs/jspv/dashboard.jsp" target="_new">Task Force</a> Web Application, please refer to <a href="http://hadoop.pal.sap.corp:8080/shs/doc/codeLabShs.html" target="_new">code lab 2</a>.
     <br /><br />
-    2. Go to the "Submit a Task" tab in <a href="http://hadoop.pal.sap.corp:8080/shs/jspv/dashboard.jsp" target="_new">Task Force</a> and upload the LogProcessingExample.jar.
+    2. Go to the "Submit a Task" tab in <a href="http://hadoop.pal.sap.corp:8080/shs/jspv/dashboard.jsp" target="_new">Task Force</a> and upload the sap_hadoop_example.jar.
 
     <br /><br />
 
     <img src="UploadJar1.png" class="screen" />
 
-    3. Select "com.sap.mapred.LogProcessingExample" in the "MapReduce Class" drop down list and enter the HDFS directory containing the log files.
+    <br /><br />
+
+    3. Select "com.sap.mapred.LogProcessingExample" in the "MapReduce Class" drop down list and enter the HDFS directory containing the log files, for example: /user/I123456/
 
     <br /><br />
 
     <img src="UploadJar2.png" class="screen" />
 
-    4.
+    <br /><br />
 
-
-    <pre>
-        <code>
-    <font color="grey">// Setup an upload job - 1</font>
-    UploadStep upload1 = new UploadStep("file1");
-    upload1.setLocalFilename("C:\\data\\file1.xyz");
-    upload1.setRemoteFilename(context.getRemoteFolder() + "file1.xyz");
-
-    <font color="grey">// Setup an upload job - 2</font>
-    UploadStep upload2 = new UploadStep("file2");
-    upload2.setLocalFilename("C:\\data\\file2.xyz");
-    upload2.setRemoteFilename(context.getRemoteFolder() + "file2.xyz");
-
-    <font color="grey">// Setup an upload job - 3</font>
-    UploadStep upload3 = new UploadStep("file3");
-    upload3.setLocalFilename("C:\\data\\file3.xyz");
-    upload3.setRemoteFilename(context.getRemoteFolder() + "file3.xyz");
-
-    <font color="grey">// Add the steps and run them</font>
-    context.addStep(upload1);
-    context.addStep(upload2);
-    context.addStep(upload3);
-    context.runSteps();
-        </code>
-    </pre>
+    4. Go to Hadoop's <a href="http://hadoop01:50030/jobtracker.jsp" target="_new">Task Status</a> page and make sure you see your 2 jobs have completed (AccessLogParser and ProductTrend).
+    <br /><br />
+    There will be 2 jobs running once you have done Step 3, the first job will be displayed in Task Force but the second job is not shown by Task Force and can only be checked manually in via Hadoop Job Status page using the job id.
 
     <br /><br />
 
-    (OPTIONAL) The above 3 steps can be replaced by a UploadFolderStep:
+    <img src="Finished2Jobs.png" class="screen" />
 
     <br /><br />
 
-    <pre>
-        <code>
-UploadFolderStep uploadFolder = new UploadFolderStep("UploadFolder: temp");
-uploadFolder.setLocalFolderName("C:\\temp\\");
-uploadFolder.setRemoteFolderName(context.getRemoteFolder() + "temp/");
-
-context.addStep(uploadFolder);
-context.runSteps();
-        </code>
-    </pre>
+    5. You can view the result of the log processing result, please fo to HDFS <a href="http://hadoop01:50070/dfshealth.jsp" target="_new">status page</a> and click on "Browse the filesystem" to preview/download the result file called "part-r-00000", for example: /user/I123456/parsed/trend/part-r-00000.
 
     <br /><br />
 
-    (OPTIONAL) Similarly, there is a DownloadFileStep and DownloadFolderStep:
+    <img src="LogResultOnHDFS1.png" class="screen" />
 
     <br /><br />
 
-    <pre>
-        <code>
+    <img src="LogResultOnHDFS2.png" class="screen" />
 
-<font color=grey>// Download a file</font>
-DownloadFileStep downloadFile = new DownloadFileStep("Download File");
+    <br /><br />
 
-<font color=grey>// Specify the remote and local file names</font>
-downloadFile.setRemoteFilename(cm.getRemoteFolder() + "test.txt");
-downloadFile.setLocalFilename("c:\\data\\test.txt");
+<a name="TheLogProcessingLogic"></a>
 
-context.addStep(downloadFile);
-context.runSteps();
-         </code>
-    </pre>
-
-    <pre>
-        <code>
-
-<font color=grey>// Download a temp folder</font>
-DownloadFolderStep downloadFolder = new DownloadFolderStep("DownloadFolder: temp");
-
-<font color=grey>// Specify the remote and local folder names</font>
-downloadFolder.setRemoteFolderName(cm.getRemoteFolder() + "temp/");
-downloadFolder.setLocalFolderName("c:\\temp");
-
-context.addStep(downloadFolder);
-context.runSteps();
-        </code>
-    </pre>
-</p>
-
-<a name="Etlapi"></a>
-
-<h1>Hive & ETL API</h1>
+<h1>The Log Processing Logic</h1>
 
 <p>
-    Hive is a sub-project developed by Facebook to provide an SQL interface over HDFS and uses MapReduce to perform SQL <br />
-    operations.&nbsp;&nbsp;Hive is designed to perform data warehouse operations on extremely huge data volumes over HDFS.<br />
-    Prototype SAP ETL API was created based on Hive to support SQL and provide JDBC interface:
+    <strong>1. Access Log Format</strong>
 
     <br /><br />
 
-    1. The following will create a table and load data into the table.  We are introducing the notion of dependency (see the hightlighted line for adding step dependency):
+    The Apache Web/Tomcat Application Server access log is generated in the following format:
 
-    <br /> <br />
-
-    There are 3 steps in this example, uploading the tsv file (like the first example), creating a table and loading data.  <br />
-
-    The dependency required here is for data loading step <2> wait for table creation step <1>
-
-    <br /><br />
+    <br/><br/>
 
     <pre>
         <code>
-import com.sap.hadoop.conf.ConfigurationManager;
-import com.sap.hadoop.etl.ContextFactory;
-import com.sap.hadoop.etl.ETLStepContextException;
-import com.sap.hadoop.etl.IContext;
-import com.sap.hadoop.etl.SQLStep;
-
-public static void main(String[] args) throws ETLStepContextException, InterruptedException, IOException {
-    ConfigurationManager cm = new ConfigurationManager("I123456", "hadoopsap");
-    IContext context = ContextFactory.createContext(cm);
-
-    <font color="grey">
-    ///////////////////////////////////////////////////////////////////////
-    // <0> Upload the input file "real_category.tsv"
-    ///////////////////////////////////////////////////////////////////////
-    </font>
-    UploadStep uploadStep = new UploadStep("RealCategoryUpload");
-    uploadStep.setLocalFilename("C:\\data\\real_category.tsv");
-    uploadStep.setRemoteFilename(context.getRemoteWorkingFolder() + "real_category.tsv");
-    <font color="grey">
-    ///////////////////////////////////////////////////////////////////////
-    // <1> Now create "category" table
-    ///////////////////////////////////////////////////////////////////////
-    </font>
-    SQLStep createTableCategory = new SQLStep("CREATE TABLE category");
-    createTableCategory.setSql(" CREATE EXTERNAL TABLE IF NOT EXISTS category " +
-                              " ( article_wpid INT, category_name STRING ) " +
-                              "   ROW FORMAT DELIMITED " +
-                              "   FIELDS TERMINATED BY '\t' " +
-                              "   LINES TERMINATED BY '\n'" +
-                              "   STORED AS TEXTFILE ");
-    <font color="grey">
-    ///////////////////////////////////////////////////////////////////////
-    // <2> Load the TSV to "category" table
-    ///////////////////////////////////////////////////////////////////////
-    </font>
-    SQLStep loadTableCategory = new SQLStep("LOAD TABLE category");
-    loadTableCategory.setSql(" LOAD DATA INPATH '" + context.getRemoteWorkingFolder() + "real_category.tsv' " +
-                             " OVERWRITE INTO TABLE category");
-
-    context.addStep(uploadStep);                               <font color="grey">// Add <0></font>
-    context.addStep(createTableCategory);                      <font color="grey">// Add <1></font>
-    <font color=red><strong>
-    context.addStep(loadTableCategory, createTableCategory);   <font color="grey">// Add <2> and make it depend on <1></font>
-    </strong></font>
-    context.runSteps();
-}
+<font color="blue">198.93.34.21 - frank [02/Aug/2011:00:00:01 -0700] "GET /Antec-EA-380D-Power-Supply/dp/B002UOR17Y/ HTTP/1.1" 200 7577</font>
+169.145.89.205 - - [02/Aug/2011:00:00:03 -0700] "GET /Antec-EA-380D-Power-Supply/dp/B002UOR17Y/ HTTP/1.1" 200 247
+198.93.34.21 - - [02/Aug/2011:00:00:04 -0700] "GET /Michelin-Pilot-Road-Rear-Tire/dp/B004MDSTW2/ HTTP/1.1" 200 102
+198.93.34.21 - - [02/Aug/2011:00:00:06 -0700] "GET /Razor-Wild-Style-Kick-Scooter/dp/B002S0YPUG/ HTTP/1.1" 200 833
+10.48.58.42 - - [02/Aug/2011:00:00:08 -0700] "GET /Peg-Perego-Polaris-Outlaw-Pink/dp/B003JI62HU/ HTTP/1.1" 200 561
         </code>
     </pre>
 
     <br /><br />
-    2. The following will perform SQL via JDBC on Hive (Complicated SQL like inner and outer joins are supported and will be included in the advanced code lab): <br /><br />
-    This example is to simply print the row count along with the 2 columns in category table using SQL <br />
+
+    A typical configuration for the access log might look as follows.
+
+    <br /><br />
+
+    <font color="red">%h %l %u %t \"%r\" %>s %b</font>
+
+    <br /><br />
+
+    Each part of this log entry is described below.
+
+    <br /><br />
+
+    <font color="blue">198.93.34.21 (%h)</font>
+    <br />
+    This is the IP address of the client (remote host) which made the request to the server. If HostnameLookups is set to On, then the server will try to determine the hostname and log it in place of the IP address. However, this configuration is not recommended since it can significantly slow the server. Instead, it is best to use a log post-processor such as logresolve to determine the hostnames. The IP address reported here is not necessarily the address of the machine at which the user is sitting. If a proxy server exists between the user and the server, this address will be the address of the proxy, rather than the originating machine.
+
+    <br /><br />
+
+    <font color="blue">- (%l)</font>
+    <br />
+    The "hyphen" in the output indicates that the requested piece of information is not available. In this case, the information that is not available is the RFC 1413 identity of the client determined by identd on the clients machine. This information is highly unreliable and should almost never be used except on tightly controlled internal networks. Apache httpd will not even attempt to determine this information unless IdentityCheck is set to On.
+
+    <br /><br />
+
+    <font color="blue">frank (%u)</font>
+    <br />
+    This is the userid of the person requesting the document as determined by HTTP authentication. The same value is typically provided to CGI scripts in the REMOTE_USER environment variable. If the status code for the request (see below) is 401, then this value should not be trusted because the user is not yet authenticated. If the document is not password protected, this part will be "-" just like the previous one.
+
+    <br /><br />
+
+    <font color="blue">[02/Aug/2011:00:00:01 -0700] (%t)</font>
+    <br />
+    The time that the request was received. The format is:
+    [day/month/year:hour:minute:second zone]
+    day = 2*digit
+    month = 3*letter
+    year = 4*digit
+    hour = 2*digit
+    minute = 2*digit
+    second = 2*digit
+    zone = (`+' | `-') 4*digit
+
+    <br /><br />
+
+    <font color="blue">"GET /Antec-EA-380D-Power-Supply/dp/B002UOR17Y/ HTTP/1.0" (\"%r\")</font>
+    <br />
+    The request line from the client is given in double quotes. The request line contains a great deal of useful information. First, the method used by the client is GET. Second, the client requested the resource /apache_pb.gif, and third, the client used the protocol HTTP/1.0. It is also possible to log one or more parts of the request line independently. For example, the format string "%m %U%q %H" will log the method, path, query-string, and protocol, resulting in exactly the same output as "%r".
+
+    <br /><br />
+
+    <font color="blue">200 (%>s)</font>
+    <br />
+    This is the status code that the server sends back to the client. This information is very valuable, because it reveals whether the request resulted in a successful response (codes beginning in 2), a redirection (codes beginning in 3), an error caused by the client (codes beginning in 4), or an error in the server (codes beginning in 5). The full list of possible status codes can be found in the HTTP specification (RFC2616 section 10).
+
+    <br /><br />
+
+    <font color="blue">7577 (%b)</font>
+    <br />
+    The last part indicates the size of the object returned to the client, not including the response headers. If no content was returned to the client, this value will be "-". To log "0" for no content, use %B instead.
+
+    <br /><br />
+
+    <strong>2. Parsing lines in the Access Log (The LogParser's Map Method)</strong>
+
+    <br /><br />
+
+    The code to parse each line of log into an inner class "AccessData" is in LogParser.java as following, please see the code comments for details.
+
+    <br /><br />
+
     <pre>
         <code>
-import com.sap.hadoop.conf.ConfigurationManager;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+private static AccessData getAccessData(String line) {
+    <font color=grey>// An AccessData object will be created for each line if possible</font>
+    AccessData accessData = null;
 
-public static void main(String[] arg) throws SQLException {
-    ConfigurationManager cm = new ConfigurationManager("I123456", "hadoopsap");
-    <font color="grey">// Get a JDBC connection to the Hive instance</font>
-    Connection conn = cm.getConnection();
-    Statement stmt = conn.createStatement();
+    try {
+        accessData = new AccessData();
+        <font color=grey>// Parse the value separated line using space as the delimiter</font>
+        CSVParser csvParser = new CSVParser(new StringReader(line));
+        csvParser.getStrategy().setDelimiter(' ');
 
-    <font color="grey">// Get the ResultSet</font>
-    ResultSet rs = stmt.executeQuery(" SELECT * FROM category ");
-    int resultCount = 1;
-    while (rs.next()) {
-        System.out.println(resultCount + ", " + rs.getString(1) + ", " + rs.getString(2));
-        resultCount++;
+        <font color=grey>// Now get all the values from the line</font>
+        String[] values = csvParser.getLine();
+
+        <font color=grey>// Get the IP</font>
+        accessData.ip = values[0];
+
+        <font color=grey>// The time is split into 2 values so they have to be combined</font>
+        <font color=grey>// then sent to match the time regular expression</font>
+        <font color=grey>// "[02/Aug/2011:00:00:04" + " -0700]" = "[02/Aug/2011:00:00:04 -0700]"</font>
+        accessData.timestamp = new Timestamp(DATA_FORMAT.parse(values[3] + " " + values[4]).getTime());
+
+        <font color=grey>// The resource filed has 3 fields (HTTP Method, Page and HTTP protocol)</font>
+        <font color=grey>// so it has to be further split by spaces</font>
+        String reqInfo = values[5];
+        String[] reqInfoArr = reqInfo.split(" ");
+
+        <font color=grey>// Get the HTTP method</font>
+        accessData.method = reqInfoArr[0];
+
+        <font color=grey>// Get the page requested</font>
+        accessData.resource = reqInfoArr[1];
+
+        <font color=grey>// Get the HTTP response code</font>
+        accessData.httpCode = Integer.parseInt(values[6]);
+
+        <font color=grey>// Try to get the response data size in bytes, if a hyphen shows up,</font>
+        <font color=grey>// that means the client has a cache of this page and no data is</font>
+        <font color=grey>// sent back</font>
+        try {
+            accessData.dataLength = Long.parseLong(values[7]);
+        } catch (NumberFormatException nfe) {
+            accessData.dataLength = 0;
+        }
+
+        return accessData;
+    } catch (IOException ioe) {
+        LOG.info(ioe);
+        return null;
+    } catch (ParseException pe) {
+        LOG.info(pe);
+        return null;
     }
-    stmt.close();
-    conn.close();
 }
-
         </code>
     </pre>
 
+    <br /><br />
+
+    <strong>3. Group the AccessData Objects by IP (The LogParser's Reduce Method)</strong>
+
+    <br /><br />
+
+    Among all AccessData objects parsed from the access log lines, we need to build the browsing history for each distinct IP so the products an IP visited are ordered ascendingly by their timestamps in millisecond.
+
+    <br /><br />
+
+    The <strong>italic</strong> text below is a line of the LogParser's Reduce method output:
+
+    <br /><br />
+
+    <pre>
+        <code>
+<i>10.48.101.113	<font color=blue>1312182008000_B000PKZ8EI</font>,<font color=black>1312182008450_B004MDSTW2</font>,<font color=green>1312182011000_B0015AARJI</font>,<font color=red>1312182011000_B003AUF1XI</font></i>
+
+       |                    |                        |                        |                        |
+
+      IP              First Product            Second Product           Third Product            Forth Product
+        </code>
+    </pre>
+
+    <br /><br />
+
+    The output of LogParser MapReduce code is a normalized form of users' access history, it can be used for multiple business cases like fraud detection, ad targeting, user profiling and product tracking.
+
+    <br /><br />
+
+    In the business cases mentioned above, the LogParser usually is scheduled to run on the past N days' access log file periodically and its output then be fed to other MapReduce as inputs.
+
+    <br /><br />
+
+    Our next MapReduce code included in this example will be focusing on finding the most visited products after any given given product.
+
+    <br /><br />
+
+</p>
+
+<a name="FindingTheProductTrend"></a>
+
+<h1>Finding the Product Trend</h1>
+
+<p>
+
+    <strong>1. Product Trend Map Method</strong>
+
+    <br /><br />
+
+    The output of the LogParser is users' browsing history and now we need to find the most popular products after a given product is visited.
+
+    <br /><br />
+
+    To do this, we need to read the LogParser's output line by line and to find all pairs of 2 contiguous products when their visit times are within a reasonable interval.
+
+    <br /><br />
+
+    This is the basically logic of the ProductTrend's map method and below is its sample output:
+
+    <br /><br />
+
+    <pre>
+        <code>
+B000PKZ8EI    B004MDSTW2
+B004MDSTW2    B0015AARJI
+B000PKZ8EI    B004MDSTW2
+B0015AARJI    B003AUF1XI
+B000PKZ8EI    B004MDSTW2
+B0015AARJI    B003AUF1XI
+        </code>
+    </pre>
+
+    <br /><br />
+
+    <strong>2. Product Trend Reduce Method</strong>
+
+    <br /><br />
+
+    Now for each first product id, the reduce method would get the second product counts and generate percentages of the second products.
+
+    <br /><br />
+
+    Also, in order to make it more user-readable, there is another iteration to replace the product id to product name.
+
+    <br /><br />
+
+    The output would look like this:
+
+    <br /><br />
+
+    <pre>
+        <code>
+Sony BRAVIA KDL 46V5100 46 Inch 1080p,18.50%	,Panasonic VIERA TC P50G25 50 Inch Plasma
+Sony BRAVIA KDL 46V5100 46 Inch 1080p,13.26%	,VIZIO XVT373SV 37 Inch Internet Application
+Sony BRAVIA KDL 46V5100 46 Inch 1080p,08.07%	,LG 37LV3500 Accessory Cables Cleaning
+Sony BRAVIA KDL 46V5100 46 Inch 1080p,06.00%	,Canon T2i Digital 3 0 Inch 18 55mm
+PlayStation 3 160GB System,27.66%	,PlayStation Dualshock Wireless Controller Black 3
+PlayStation 3 160GB System,14.24%	,Halo Combat Evolved Anniversary Xbox 360
+PlayStation 3 160GB System,13.13%	,Xbox 360 Gears Limited Console Bundle
+Canon T3i Digital Imaging 18 55mm,19.46%	,Canon T2i Digital 3 0 Inch 18 55mm
+Canon T3i Digital Imaging 18 55mm,07.93%	,Canon 55 250mm 4 0 5 6 Telephoto Digital
+Canon T3i Digital Imaging 18 55mm,06.36%	,Razor Aggressive Youth Multi sport Helmet
+Canon T3i Digital Imaging 18 55mm,06.13%	,Michelin Pilot Road Rear Tire
+Canon T3i Digital Imaging 18 55mm,05.65%	,Michael Antonio Womens Theronn Platform
+Canon T3i Digital Imaging 18 55mm,05.61%	,PlayStation Dualshock Wireless Controller Black 3
+Canon T3i Digital Imaging 18 55mm,05.50%	,AmazonBasics Lens Pen Cleaning System
+Michael Antonio Womens Dress Shoes,11.79%	,Michael Antonio Womens Theronn Platform
+Michael Antonio Womens Dress Shoes,09.48%	,Loreal Colour Lipstick 415 Cherry
+Michael Antonio Womens Dress Shoes,07.67%	,Razor Aggressive Youth Multi sport Helmet
+Michael Antonio Womens Dress Shoes,07.30%	,PlayStation Dualshock Wireless Controller Black 3
+Michael Antonio Womens Dress Shoes,05.57%	,Intex Recreation Giant 59252EP Inflatable
+        </code>
+    </pre>
+
+    <br /><br />
+
+    Now this result can be used for generating a recommendation list for in every product page to increase sales revenue.
 </p>
 
 <a name="Conclusion"></a>
@@ -332,7 +483,10 @@ public static void main(String[] arg) throws SQLException {
 <h1>Conclusion</h1>
 
 <p>
-    Next code lab will introduce how to submit an organic MapReduce to SAP Hadoop cluster using SAP Task Force web application.
+    The ProductTrend MapReduce logic is relatively easier than LogParser and more like statistics but the LogParser would provide the basic input for many business cases.  With Hadoop's support, now-a-days enterprises can find useful information from huge non-related data and optimize their business accordingly.
+
+    <br /><br />
+    For further coding exercise, please read though the code and add/modify ProductTrend to find users who have been visiting more than 20 products in 3 seconds.
 </p>
 
 </div>

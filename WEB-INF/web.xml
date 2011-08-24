@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+                      http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+         version="3.0"
+         metadata-complete="true">
+
+    <description>
+        SAP Hadoop Services
+    </description>
+    <display-name>SAP Hadoop Services</display-name>
+
+    <!-- Define example filters -->
+
+    <filter>
+        <filter-name>HashCodefilter</filter-name>
+        <filter-class>com.sap.shs.HashCodeFilter</filter-class>
+        <init-param>
+            <param-name>loginJsp</param-name>
+            <param-value>/shs/jsp/login.jsp</param-value>
+        </init-param>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>HashCodefilter</filter-name>
+        <url-pattern>/jspv/*</url-pattern>
+    </filter-mapping>
+
+    <servlet>
+        <servlet-name>GetJobStatus</servlet-name>
+        <servlet-class>com.sap.shs.GetJobStatus</servlet-class>
+        <load-on-startup>1</load-on-startup>
+        <init-param>
+            <param-name>hadoopLogDirectory</param-name>
+            <!--<param-value>C:\\projects\\apache-tomcat-7.0.12\\temp\\</param-value>-->
+            <param-value>/usr/local/hadoop/logs/</param-value>
+        </init-param>
+
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>GetJobStatus</servlet-name>
+        <url-pattern>/ggg</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>GetJobHistory</servlet-name>
+        <servlet-class>com.sap.shs.GetJobHistory</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>GetJobHistory</servlet-name>
+        <url-pattern>/hhh</url-pattern>
+    </servlet-mapping>
+
+
+
+    <servlet>
+        <servlet-name>Login</servlet-name>
+        <servlet-class>com.sap.shs.Login</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>Login</servlet-name>
+        <url-pattern>/lll</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ListHdfsFolder</servlet-name>
+        <servlet-class>com.sap.shs.ListHdfsFolder</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>ListHdfsFolder</servlet-name>
+        <url-pattern>/hfl</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>DeleteHdfsFile</servlet-name>
+        <servlet-class>com.sap.shs.DeleteHdfsFile</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>DeleteHdfsFile</servlet-name>
+        <url-pattern>/ddd</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ListJarClass</servlet-name>
+        <servlet-class>com.sap.shs.ListJarClass</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>ListJarClass</servlet-name>
+        <url-pattern>/jjj</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>UploadFile</servlet-name>
+        <servlet-class>com.sap.shs.UploadFile</servlet-class>
+        <load-on-startup>1</load-on-startup>
+            </servlet>
+
+    <servlet-mapping>
+        <servlet-name>UploadFile</servlet-name>
+        <url-pattern>/uuu</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>UploadJarFile</servlet-name>
+        <servlet-class>com.sap.shs.UploadJarFile</servlet-class>
+        <load-on-startup>1</load-on-startup>
+        <init-param>
+            <param-name>baseStorageDirectory</param-name>
+            <!--<param-value>C:\\projects\\apache-tomcat-7.0.12\\temp\\</param-value>-->
+            <param-value>/usr/local/tomcat/temp/</param-value>
+        </init-param>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>UploadJarFile</servlet-name>
+        <url-pattern>/uuuJar</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>SubmitJob</servlet-name>
+        <servlet-class>com.sap.shs.SubmitJob</servlet-class>
+        <init-param>
+            <param-name>scriptFilename</param-name>
+            <param-value>/usr/local/hadoop/bin/submit_job.sh</param-value>
+        </init-param>
+
+        <init-param>
+            <param-name>hadoopTaskUrl</param-name>
+            <param-value>http://dewei0:50030/jobtracker.jsp</param-value>
+        </init-param>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>SubmitJob</servlet-name>
+        <url-pattern>/sss</url-pattern>
+    </servlet-mapping>
+
+    <error-page>
+        <error-code>404</error-code>
+        <location>/jsp/404.jsp</location>
+    </error-page>
+
+    <error-page>
+        <exception-type>java.lang.Exception</exception-type>
+        <location>/jsp/errorpage.jsp</location>
+    </error-page>
+
+</web-app>

@@ -1,0 +1,75 @@
+<project name="shs" default="dist" basedir=".">
+    <description>
+        The SAP Hadoop Services
+    </description>
+    <!-- set global properties for this build -->
+    <property name="src" location="src"/>
+    <property name="build" location="build"/>
+    <property name="dist" location="dist"/>
+    <property name="webInf" location="WEB-INF"/>
+    <property name="lib" location="${webInf}/lib"/>
+    <property name="servletJar" location="../tomcat/lib/servlet-api.jar"/>
+
+    <property name="verbose" value="false" />
+	
+    <!-- Defining 3 pathes -->
+	<path id="classpath.base">
+    	<fileset dir="${lib}" includes="*.jar"/>
+        <pathelement path="${servletJar}"/>
+  	</path>
+
+    <target name="init">
+        <!-- Create the time stamp -->
+        <tstamp/>
+        <!-- Create the build directory structure used by compile -->
+        <mkdir dir="${build}"/>
+    </target>
+
+    <target name="compile" depends="clean,init" description="compile the source ">
+        <mkdir dir="${build}/WEB-INF/classes"/>
+        <mkdir dir="${build}/jsp"/>
+        <mkdir dir="${build}/doc"/>
+        <mkdir dir="${build}/jspv"/>
+        <mkdir dir="${build}/resources"/>
+
+        <!-- Compile the java code from ${src} into ${build} -->
+        <javac srcdir="${src}" destdir="${build}/WEB-INF/classes" fork="true">
+        	<classpath refid="classpath.base">
+            </classpath>
+        </javac>
+
+        <copy todir="${build}/WEB-INF">
+             <fileset file="${webInf}/**"/>
+        </copy>
+
+        <copy todir="${build}/jsp">
+             <fileset file="jsp/**"/>
+        </copy>
+        <copy todir="${build}/doc">
+             <fileset file="doc/**"/>
+        </copy>
+        <copy todir="${build}/jspv">
+             <fileset file="jspv/**"/>
+        </copy>
+
+        <copy todir="${build}/resources">
+             <fileset file="resources/**"/>
+        </copy>
+    </target>
+
+    <target name="dist" depends="compile" description="generate the distribution">
+        <!-- Create the distribution directory -->
+        <mkdir dir="${dist}"/>
+        <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
+
+        <war jarfile="${dist}/shs.war" basedir="${build}"/>
+        <!--<jar jarfile="${dist}/index-complete.jar" basedir="${dist}" manifest="${manifest}/MANIFEST.MF"/>-->
+
+    </target>
+
+    <target name="clean" depends="" description="clean up">
+        <!-- Delete the ${build} and ${dist} directory trees -->
+        <delete dir="${build}"/>
+        <delete dir="${dist}"/>        
+    </target>
+</project>

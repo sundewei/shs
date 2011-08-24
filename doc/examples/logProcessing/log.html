@@ -1,0 +1,353 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>SAP Hadoop MapReduce Example (Log Processing)</title>
+    <link href="../../css/codesite.pack.04102009.css" type="text/css" rel="stylesheet">
+</head>
+
+<body class="gc-documentation">
+
+<style type='text/css'>
+img.screen {
+ width: 800px ;
+ height: 600px;
+}
+</style>
+
+<div id="gc-container">
+
+<div id="gc-topnav">
+    <h1>SAP Hadoop MapReduce Example (Log Processing)</h1>
+    <ul id="docs" class="gc-topnav-tabs">
+        <li>
+          <a href="codeLab.html" class="selected" title="Log Processing">[1]</a>
+        </li>
+    </ul>
+</div>
+<!-- end gc-topnav -->
+
+<div class="g-section g-tpl-170">
+
+<div class="g-unit g-first" id="gc-toc">
+    <ul>
+        <li><h2>Quick Links</h2>
+            <ul>
+                <li>
+                    <a href="#Introduction" title="Introduction">Introduction</a>
+                </li>
+
+                <li>
+                    <a href="#Prerequisites" title="Prerequisites">Prerequisites</a>
+                </li>
+
+                <li>
+                    <a href="#Ioapi" title="Hdfs & I/O API">Hdfs & I/O API</a>
+                </li>
+
+                <li>
+                    <a href="#Etlapi" title="Hive & ETL API">Hive & ETL API</a>
+                </li>
+
+                <li>
+                    <a href="#Conclusion" title="Conclusion">Conclusion</a>
+                </li>
+
+            </ul>
+        </li>
+    </ul>
+
+</div>
+
+<a name="gc-pagecontent-anchor"></a>
+
+<div class="g-unit" id="gc-pagecontent">
+
+<a name="Introduction"></a>
+
+<h1>Introduction</h1>
+<p>
+    If you have arrived this page, that means you have certain understanding about Hadoop.  Now let's focus on a relatively common usage -- Log Processing.
+    <br /><br />
+    The log files used in this example are in the format used by Apache Web Server and Apache Tomcat Application Server.
+    <br /><br />
+    If you wish to parse different log files in different format, please change the MapReduce source code accordingly.
+</p>
+
+<a name="Prerequisites"></a>
+
+<h1>Prerequisites</h1>
+
+<p>
+    <ul class="bulletlist">
+        <li> Copy and paste the following hostname mappings to your hosts file: <font color="red"> c:\Windows\System32\drivers\etc\hosts</font>
+            <pre>
+                <code>
+10.48.171.223		hadoop01
+10.48.171.224		hadoop02
+10.48.171.225		hadoop03
+10.48.171.226		hadoop04
+10.48.171.227		hadoop05
+10.48.171.228		hadoop06
+10.48.171.229		hadoop07
+10.48.171.230		hadoop08
+10.48.171.231		hadoop09
+10.48.171.216		hadoop10
+                </code>
+            </pre>
+        </li>
+        <li> The MapReduce code for this example is compressed as a JAR file and stored on the HDFS.<br/> Please browse the HDFS and download <a href="http://hadoop06:50075/browseDirectory.jsp?dir=%2Fuser%2Fexamples%2FLogProcessing&namenodeInfoPort=50070" target="_new">LogProcessingExample.jar</a> to your local folder, for example: c:\hadoop_example\ </li>
+        <li> Download one or more <a href="http://hadoop06:50075/browseDirectory.jsp?dir=%2Fuser%2Fexamples%2FLogProcessing&namenodeInfoPort=50070" target="_new">sample input log files</a> from HDFS to your local folder, for example: c:\hadoop_example\ </li>
+        <li> (Optional) Request access to SAP Hadoop cluster by sending your employee ID to <a href="mailto:dewei.sun@sap.com">me</a> or you can just use the test account in the code snippets</li>
+    </ul>
+    <br />
+    Please contact <a href="mailto:dewei.sun@sap.com">Dewei Sun</a>, if there is any error opening above links.
+</p>
+
+<a name="Ioapi"></a>
+
+<h1>Upload the sample log files</h1>
+
+<p>
+    1. Upload the sample log files to your HDFS personal folder via <a href="http://hadoop.pal.sap.corp:8080/shs/jspv/dashboard.jsp" target="_new">Task Force</a> Web Application.
+
+    <br /><br />
+
+    <img src="UploadLogs1.png" class="screen" />
+
+    <br /><br />
+
+    <img src="UploadLogs2.png" class="screen" />
+
+    <br /><br />
+
+    <img src="UploadLogs3.png" class="screen" />
+
+    <br /><br />
+    In case you need some guidelines about how to use <a href="http://hadoop.pal.sap.corp:8080/shs/jspv/dashboard.jsp" target="_new">Task Force</a> Web Application, please refer to <a href="http://hadoop.pal.sap.corp:8080/shs/doc/codeLabShs.html" target="_new">code lab 2</a>.
+    <br /><br />
+    2. Go to the "Submit a Task" tab in <a href="http://hadoop.pal.sap.corp:8080/shs/jspv/dashboard.jsp" target="_new">Task Force</a> and upload the LogProcessingExample.jar.
+
+    <br /><br />
+
+    <img src="UploadJar1.png" class="screen" />
+
+    3. Select "com.sap.mapred.LogProcessingExample" in the "MapReduce Class" drop down list and enter the HDFS directory containing the log files.
+
+    <br /><br />
+
+    <img src="UploadJar2.png" class="screen" />
+
+    4.
+
+
+    <pre>
+        <code>
+    <font color="grey">// Setup an upload job - 1</font>
+    UploadStep upload1 = new UploadStep("file1");
+    upload1.setLocalFilename("C:\\data\\file1.xyz");
+    upload1.setRemoteFilename(context.getRemoteFolder() + "file1.xyz");
+
+    <font color="grey">// Setup an upload job - 2</font>
+    UploadStep upload2 = new UploadStep("file2");
+    upload2.setLocalFilename("C:\\data\\file2.xyz");
+    upload2.setRemoteFilename(context.getRemoteFolder() + "file2.xyz");
+
+    <font color="grey">// Setup an upload job - 3</font>
+    UploadStep upload3 = new UploadStep("file3");
+    upload3.setLocalFilename("C:\\data\\file3.xyz");
+    upload3.setRemoteFilename(context.getRemoteFolder() + "file3.xyz");
+
+    <font color="grey">// Add the steps and run them</font>
+    context.addStep(upload1);
+    context.addStep(upload2);
+    context.addStep(upload3);
+    context.runSteps();
+        </code>
+    </pre>
+
+    <br /><br />
+
+    (OPTIONAL) The above 3 steps can be replaced by a UploadFolderStep:
+
+    <br /><br />
+
+    <pre>
+        <code>
+UploadFolderStep uploadFolder = new UploadFolderStep("UploadFolder: temp");
+uploadFolder.setLocalFolderName("C:\\temp\\");
+uploadFolder.setRemoteFolderName(context.getRemoteFolder() + "temp/");
+
+context.addStep(uploadFolder);
+context.runSteps();
+        </code>
+    </pre>
+
+    <br /><br />
+
+    (OPTIONAL) Similarly, there is a DownloadFileStep and DownloadFolderStep:
+
+    <br /><br />
+
+    <pre>
+        <code>
+
+<font color=grey>// Download a file</font>
+DownloadFileStep downloadFile = new DownloadFileStep("Download File");
+
+<font color=grey>// Specify the remote and local file names</font>
+downloadFile.setRemoteFilename(cm.getRemoteFolder() + "test.txt");
+downloadFile.setLocalFilename("c:\\data\\test.txt");
+
+context.addStep(downloadFile);
+context.runSteps();
+         </code>
+    </pre>
+
+    <pre>
+        <code>
+
+<font color=grey>// Download a temp folder</font>
+DownloadFolderStep downloadFolder = new DownloadFolderStep("DownloadFolder: temp");
+
+<font color=grey>// Specify the remote and local folder names</font>
+downloadFolder.setRemoteFolderName(cm.getRemoteFolder() + "temp/");
+downloadFolder.setLocalFolderName("c:\\temp");
+
+context.addStep(downloadFolder);
+context.runSteps();
+        </code>
+    </pre>
+</p>
+
+<a name="Etlapi"></a>
+
+<h1>Hive & ETL API</h1>
+
+<p>
+    Hive is a sub-project developed by Facebook to provide an SQL interface over HDFS and uses MapReduce to perform SQL <br />
+    operations.&nbsp;&nbsp;Hive is designed to perform data warehouse operations on extremely huge data volumes over HDFS.<br />
+    Prototype SAP ETL API was created based on Hive to support SQL and provide JDBC interface:
+
+    <br /><br />
+
+    1. The following will create a table and load data into the table.  We are introducing the notion of dependency (see the hightlighted line for adding step dependency):
+
+    <br /> <br />
+
+    There are 3 steps in this example, uploading the tsv file (like the first example), creating a table and loading data.  <br />
+
+    The dependency required here is for data loading step <2> wait for table creation step <1>
+
+    <br /><br />
+
+    <pre>
+        <code>
+import com.sap.hadoop.conf.ConfigurationManager;
+import com.sap.hadoop.etl.ContextFactory;
+import com.sap.hadoop.etl.ETLStepContextException;
+import com.sap.hadoop.etl.IContext;
+import com.sap.hadoop.etl.SQLStep;
+
+public static void main(String[] args) throws ETLStepContextException, InterruptedException, IOException {
+    ConfigurationManager cm = new ConfigurationManager("I123456", "hadoopsap");
+    IContext context = ContextFactory.createContext(cm);
+
+    <font color="grey">
+    ///////////////////////////////////////////////////////////////////////
+    // <0> Upload the input file "real_category.tsv"
+    ///////////////////////////////////////////////////////////////////////
+    </font>
+    UploadStep uploadStep = new UploadStep("RealCategoryUpload");
+    uploadStep.setLocalFilename("C:\\data\\real_category.tsv");
+    uploadStep.setRemoteFilename(context.getRemoteWorkingFolder() + "real_category.tsv");
+    <font color="grey">
+    ///////////////////////////////////////////////////////////////////////
+    // <1> Now create "category" table
+    ///////////////////////////////////////////////////////////////////////
+    </font>
+    SQLStep createTableCategory = new SQLStep("CREATE TABLE category");
+    createTableCategory.setSql(" CREATE EXTERNAL TABLE IF NOT EXISTS category " +
+                              " ( article_wpid INT, category_name STRING ) " +
+                              "   ROW FORMAT DELIMITED " +
+                              "   FIELDS TERMINATED BY '\t' " +
+                              "   LINES TERMINATED BY '\n'" +
+                              "   STORED AS TEXTFILE ");
+    <font color="grey">
+    ///////////////////////////////////////////////////////////////////////
+    // <2> Load the TSV to "category" table
+    ///////////////////////////////////////////////////////////////////////
+    </font>
+    SQLStep loadTableCategory = new SQLStep("LOAD TABLE category");
+    loadTableCategory.setSql(" LOAD DATA INPATH '" + context.getRemoteWorkingFolder() + "real_category.tsv' " +
+                             " OVERWRITE INTO TABLE category");
+
+    context.addStep(uploadStep);                               <font color="grey">// Add <0></font>
+    context.addStep(createTableCategory);                      <font color="grey">// Add <1></font>
+    <font color=red><strong>
+    context.addStep(loadTableCategory, createTableCategory);   <font color="grey">// Add <2> and make it depend on <1></font>
+    </strong></font>
+    context.runSteps();
+}
+        </code>
+    </pre>
+
+    <br /><br />
+    2. The following will perform SQL via JDBC on Hive (Complicated SQL like inner and outer joins are supported and will be included in the advanced code lab): <br /><br />
+    This example is to simply print the row count along with the 2 columns in category table using SQL <br />
+    <pre>
+        <code>
+import com.sap.hadoop.conf.ConfigurationManager;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public static void main(String[] arg) throws SQLException {
+    ConfigurationManager cm = new ConfigurationManager("I123456", "hadoopsap");
+    <font color="grey">// Get a JDBC connection to the Hive instance</font>
+    Connection conn = cm.getConnection();
+    Statement stmt = conn.createStatement();
+
+    <font color="grey">// Get the ResultSet</font>
+    ResultSet rs = stmt.executeQuery(" SELECT * FROM category ");
+    int resultCount = 1;
+    while (rs.next()) {
+        System.out.println(resultCount + ", " + rs.getString(1) + ", " + rs.getString(2));
+        resultCount++;
+    }
+    stmt.close();
+    conn.close();
+}
+
+        </code>
+    </pre>
+
+</p>
+
+<a name="Conclusion"></a>
+
+<h1>Conclusion</h1>
+
+<p>
+    Next code lab will introduce how to submit an organic MapReduce to SAP Hadoop cluster using SAP Task Force web application.
+</p>
+
+</div>
+<!-- end gc-pagecontent -->
+</div>
+<!-- end gooey wrapper -->
+</div>
+<!-- end codesite content -->
+<div id="gc-footer" dir="ltr">
+    <div class="text">
+        ©2011 SAP
+    </div>
+</div>
+<!-- end gc-footer -->
+
+</body>
+</html>
+

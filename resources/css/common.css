@@ -1,0 +1,89 @@
+body {
+    font:12px Arial, Helvetica, sans-serif;
+    background:#cfcfcf url(../gfx/bridge.jpg);
+    background-repeat: no;
+    overflow-y:scroll;
+}
+
+a {
+    text-decoration: none;
+    outline:none;
+    cursor: pointer;
+}
+a:visited {
+    color: #800080;
+}
+a:hover {
+    color: #FF0000;
+}
+
+.sapButton {
+    top: 140px;
+    left: 20px;
+    padding: 0 25px 0 0;
+    display: block;
+    font-weight: normal;
+    text-decoration: none;
+    background: url(../gfx/btn-cta-orangeright.png) no-repeat right top;
+    line-height: 30px;
+    float: left;
+}
+
+.sapButton span {
+    padding: 0 0 0 17px;
+    display: block;
+    color: white;
+    text-decoration: none;
+    background: url(../gfx/btn-cta-orangeleft.png) no-repeat left top;
+    font-size: 14px;
+    cursor: pointer;
+    float: left;
+    line-height: 30px;
+    height: 30px;
+}
+
+.sapButton:hover {
+    background: url(../gfx/btn-cta-orangeright.png) no-repeat right bottom;
+}
+
+.sapButton:hover span {
+    background: url(../gfx/btn-cta-orangeleft.png) no-repeat left bottom;
+}
+
+.info, .success, .warning, .error, .validation {
+    font: 12px Arial, Helvetica, sans-serif;`
+    border: 1px solid;
+    padding:15px 10px 15px 50px;
+    background-repeat: no-repeat;
+    background-position: 10px center;
+}
+.info {
+    color: #00529B;
+    background-color: #BDE5F8;
+    background-image: url('../gfx/info.png');
+}
+.success {
+    color: #4F8A10;
+    background-color: #DFF2BF;
+    background-image:url('../gfx/success.png');
+}
+.warning {
+    color: #9F6000;
+    background-color: #FEEFB3;
+    background-image: url('../gfx/warning.png');
+}
+.error {
+    color: #D8000C;
+    background-color: #FFBABA;
+    background-image: url('../gfx/error.png');
+}
+
+.important {
+    font-weight: bold;
+    color: green;
+}
+
+.alert {
+    font-weight: bold;
+    color: red;
+}

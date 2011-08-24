@@ -1,0 +1,483 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>Hadoop for DBAs</title>
+    <link href="css/codesite.pack.04102009.css" type="text/css" rel="stylesheet">
+</head>
+
+<body class="gc-documentation">
+
+<style type='text/css'>
+img.screen {
+ width: 800px ;
+ height: 600px;
+}
+</style>
+
+<div id="gc-container">
+
+<div id="gc-topnav">
+    <h1>Hadoop for DBAs</h1>
+    <ul id="docs" class="gc-topnav-tabs">
+        <li>
+          <a href="codeLab.html" title="SAP Hadoop I/O and ETL API (Basic)">[1]</a>
+        </li>
+
+        <li>
+          <a href="codeLabShs.html" title="SAP Task Force Web App">[2]</a>
+        </li>
+
+        <li>
+          <a href="codeLabBc.html" title="Biz Case: People You May Know">[3]</a>
+        </li>
+
+        <li>
+          <a href="forDba.html" class="selected" title="Hadoop for DBAs">For DBAs</a>
+        </li>
+    </ul>
+</div>
+<!-- end gc-topnav -->
+
+<div class="g-section g-tpl-170">
+
+<div class="g-unit g-first" id="gc-toc">
+    <ul>
+        <li><h2>Quick Links</h2>
+            <ul>
+                <li>
+                    <a href="#Introduction" title="Introduction">Introduction</a>
+                </li>
+
+                <li>
+                    <a href="#Prerequisites" title="Prerequisites">Prerequisites</a>
+                </li>
+
+                <li>
+                    <a href="#RecordArchiving" title="Record Archiving">Record Archiving</a>
+                </li>
+
+                <li>
+                    <a href="#Ioapi" title="Hdfs & I/O API">Hdfs & I/O API</a>
+                </li>
+
+                <li>
+                    <a href="#Etlapi" title="Hive & ETL API">Hive & ETL API</a>
+                </li>
+
+                <li>
+                    <a href="#Conclusion" title="Conclusion">Conclusion</a>
+                </li>
+
+            </ul>
+        </li>
+    </ul>
+
+</div>
+
+<a name="gc-pagecontent-anchor"></a>
+
+<div class="g-unit" id="gc-pagecontent">
+
+<a name="Introduction"></a>
+
+<h1>Introduction</h1>
+<p>
+    Relational database is a common system in almost all companies in different sizes.  Some advanced database systems are configured to run in a cluster of machines consists of a master and many slave databases.
+    Usually there is one master database accepting write requests and lots of slave machines serving read requests.  The master database will make sure changes are propagated to slave databases periodically so the read request can get the most up-to-date data.
+    Data in the master database is usually backed up daily (or more frequently) to a reliable file system (like tapes) so any unexpected disaster can at most case one-day worth data loss.
+    <br /><br />
+    In this page, we are going to mention some common Hadoop usages for DBAs.
+</p>
+
+<a name="Prerequisites"></a>
+
+<h1>Prerequisites</h1>
+
+<p>
+    This code lab requires you have basic Java knowledge.
+    <ul class="bulletlist">
+        <li> 1. Install JDK 1.6 or higher <a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html" target="_new">here</a></li>
+        <li> 2. Include Hadoop libraries in your CLASSPATH (download from <a href="hadoop-core-0.20.2-cdh3u0.jar">here</a>)</li>
+        <li> 3. Include SAP Hadoop API in your CLASSPATH (download from <a href="sap_hadoop.jar">here</a>)</li>
+        <li> 4. Include 5 Hive-related jar files in your CLASSPATH (download <a href="hive-exec-0.6.0.jar">hive-exec-0.6.0</a>, <a href="hive-jdbc-0.6.0.jar">hive-jdbc-0.6.0</a>, <a href="hive-metastore-0.6.0.jar">hive-metastore-0.6.0</a>, <a href="hive-service-0.6.0.jar">hive-service-0.6.0</a>, <a href="libfb303.jar">libfb303</a>)</li>
+        <li> 5. Include <a href="log4j-1.2.15.jar">Log4J</a>, <a href="commons-logging-1.0.4.jar">Apache Common Logging API</a> and <a href="commons-io-2.0.1.jar">Apache Common IO API</a> in your CLASSPATH</li>
+        <li> 6. (Optional) Request access to SAP Hadoop cluster by sending your employee ID to <a href="mailto:dewei.sun@sap.com">me</a> or you can just use the test account in the code snippets</li>
+        <li> 7. Copy and paste the following hostname mappings to your hosts file: <font color="red"> c:\Windows\System32\drivers\etc\hosts</font>
+            <pre>
+                <code>
+10.48.171.223		hadoop01
+10.48.171.224		hadoop02
+10.48.171.225		hadoop03
+10.48.171.226		hadoop04
+10.48.171.227		hadoop05
+10.48.171.228		hadoop06
+10.48.171.229		hadoop07
+10.48.171.230		hadoop08
+10.48.171.231		hadoop09
+10.48.171.216		hadoop10
+                </code>
+            </pre>
+        </li>
+    </ul>
+    <br />
+    Please contact <a href="mailto:dewei.sun@sap.com">Dewei Sun</a>, if there is any error opening above links.
+</p>
+
+<a name="RecordArchiving"></a>
+
+<h1>Record Archiving</h1>
+
+<p>
+    As mentioned before, the master database needs to archive data onto a reliable file system.
+    HDFS here serves as a distributed file system of unlimited disk spaces and DBAs can export the "table dump" in the format they prefer (CSV, TSV, just to name a couple).<br /><br/>
+
+    1. Export the table you wish to archive in text format. (e.g. testTable.tsv) <br />
+    2. Upload the text file to HDFS: <br />
+    &nbsp;&nbsp;&nbsp;&nbsp;2-1. Upload via FTP to your personal HDFS directory. (You can connect to the FTP server using a FTP client:  ftp://I123456:hadoopsap@hadoop01/user/I123456/)<br />
+    &nbsp;&nbsp;&nbsp;&nbsp;2-2. Use I/O API to upload the table dump to your personal HDFS directory:<br /><br />
+    <pre>
+        <code>
+import com.sap.hadoop.conf.ConfigurationManager;
+import com.sap.hadoop.etl.ContextFactory;
+import com.sap.hadoop.etl.ETLStepContextException;
+import com.sap.hadoop.etl.IContext;
+import com.sap.hadoop.etl.UploadStep;
+import java.io.IOException;
+
+public static void main(String[] args) throws ETLStepContextException, InterruptedException, IOException {
+    <font color="grey">// Get a configuration manager from employee id and your Hadoop password (not your SAP password)</font>
+    ConfigurationManager cm = new ConfigurationManager("I123456", "hadoopsap");
+
+    <font color="grey">// Create a context object</font>
+    IContext context = ContextFactory.createContext(cm);
+
+    <font color="grey">// Setup an upload job</font>
+    UploadStep uploadStep = new UploadStep("UploadMyTableDump");
+    uploadStep.setLocalFilename("<font color=red><strong>C:\\location\\to\\my\\table\\dump\\myTable.tsv</strong></font>");
+    uploadStep.setRemoteFilename(context.getRemoteWorkingFolder() + "myTable.tsv");
+
+    <font color="grey">// Add the step and run it</font>
+    context.addStep(uploadStep);
+    context.runSteps();
+}
+        </code>
+    </pre>
+    <br /><br />
+    3. Create a Hive table from the TSV or CSV table dump file, this step can be done in SAP ETL API and vai HUE (a Hadoop-related project name which stands for "Hadoop User Experience")<br /><br />
+
+    The HUE URL for SAP Hadoop Cluster is: <a href="http://hadoop.pal.sap.corp:8888/">hadoop.pal.sap.corp:8888</a><br /><br />
+
+    3-1. Login page, please login using your Hadoop account or the visit account: I123456/hadoopsap <br /><br />
+
+    <img src="hueLogin.png" class="screen" />
+
+    <br /><br />
+
+    3-2. Click on the bee icon at the left-bottom corner to bring up "Beeswax for Hive" application. <br /><br />
+
+    <img src="hueHive.png" class="screen" />
+
+    <br /><br />
+
+    3.3. Click on the "Table" tab to list existing tables and click on the "new table" button to bring up the table creation wizard.
+
+    <br /><br />
+
+    <img src="hueTables.png" class="screen" />
+
+    <br /><br />
+
+    3.4. Click on the "Create From File" button to create the table from the file you just uploaded.
+
+    <br /><br />
+
+    <img src="hueCreateFromFile.png" class="screen" />
+
+    <br /><br />
+
+    3.5. Give necessary information and browse to the file you just uploaded then click "Step 2"
+
+    <br /><br />
+
+    <img src="hueTableCreation1.png" class="screen" />
+
+    <br /><br />
+
+    3.6. You will see a suggested delimiter on the top and the data preview from your text file, click "Step 3" button at the bottom or choose a different delimiter button on the top.
+
+    <br /><br />
+
+    <img src="hueTableCreation2.png" class="screen" />
+
+    <br /><br />
+
+    3.7. Assign column names and types by previewing the data in this step then click "Finish Creating Table" button.
+
+    <br /><br />
+
+    <img src="hueTableCreation3.png" class="screen" />
+
+    <br /><br />
+
+</p>
+
+<a name="Ioapi"></a>
+
+<h1>Hdfs & I/O API</h1>
+
+<p>
+    Hadoop Distributed File System (HDFS™) is the primary storage system used by Hadoop applications. Therefore input files needs to be uploaded to HDFS before Hadoop can consume. <br />
+    Here is some sample usages:
+    <br /><br />
+    1. Upload a CSV file to HDFS from running the main method: <br /> <br />
+    In this example, we will upload a TSV file (<a href="real_category.tsv" target="_new">real_category.tsv</a>) that represents real categories from an online encyclopedia. <br />
+    It contains 2 fields each line: article_id and category_name and in a later step we will access read these values back using a SQL-like interface.
+    <pre>
+        <code>
+import com.sap.hadoop.conf.ConfigurationManager;
+import com.sap.hadoop.etl.ContextFactory;
+import com.sap.hadoop.etl.ETLStepContextException;
+import com.sap.hadoop.etl.IContext;
+import com.sap.hadoop.etl.UploadStep;
+import java.io.IOException;
+
+public static void main(String[] args) throws ETLStepContextException, InterruptedException, IOException {
+    <font color="grey">// Get a configuration manager from employee id and your Hadoop password (not your SAP password)</font>
+    ConfigurationManager cm = new ConfigurationManager("I123456", "hadoopsap");
+
+    <font color="grey">// Create a context object</font>
+    IContext context = ContextFactory.createContext(cm);
+
+    <font color="grey">// Setup an upload job</font>
+    UploadStep uploadStep = new UploadStep("RealCategoryUpload");
+    uploadStep.setLocalFilename("C:\\data\\real_category.tsv");
+    uploadStep.setRemoteFilename(context.getRemoteWorkingFolder() + "real_category.tsv");
+
+    <font color="grey">// Add the step and run it</font>
+    context.addStep(uploadStep);
+    context.runSteps();
+}
+        </code>
+    </pre>
+    <br /><br />
+
+    2. You can find out if <a href="real_category.tsv" target="_new">real_category.tsv</a> has been uploaded to your HDFS directory: <br /> <br />
+    Open this <a href="ftp://hadoop.pal.sap.corp:22222/user/I123456/" target="_new">URL</a> in your browser by entering your Hadoop username/password or I123456/hadoopsap from the test account.
+
+    <br /><br />
+
+    3. Upload multiple files by creating more steps to add to the context object: <br /><br />
+
+    Uploading multiple files is as simple as adding more steps to the context. <br />
+
+    <pre>
+        <code>
+    <font color="grey">// Setup an upload job - 1</font>
+    UploadStep upload1 = new UploadStep("file1");
+    upload1.setLocalFilename("C:\\data\\file1.xyz");
+    upload1.setRemoteFilename(context.getRemoteFolder() + "file1.xyz");
+
+    <font color="grey">// Setup an upload job - 2</font>
+    UploadStep upload2 = new UploadStep("file2");
+    upload2.setLocalFilename("C:\\data\\file2.xyz");
+    upload2.setRemoteFilename(context.getRemoteFolder() + "file2.xyz");
+
+    <font color="grey">// Setup an upload job - 3</font>
+    UploadStep upload3 = new UploadStep("file3");
+    upload3.setLocalFilename("C:\\data\\file3.xyz");
+    upload3.setRemoteFilename(context.getRemoteFolder() + "file3.xyz");
+
+    <font color="grey">// Add the steps and run them</font>
+    context.addStep(upload1);
+    context.addStep(upload2);
+    context.addStep(upload3);
+    context.runSteps();
+        </code>
+    </pre>
+
+    <br /><br />
+
+    The above 3 steps can be replaced by a UploadFolderStep:
+
+    <br /><br />
+
+    <pre>
+        <code>
+UploadFolderStep uploadFolder = new UploadFolderStep("UploadFolder: temp");
+uploadFolder.setLocalFolderName("C:\\temp\\");
+uploadFolder.setRemoteFolderName(context.getRemoteFolder() + "temp/");
+
+context.addStep(uploadFolder);
+context.runSteps();
+        </code>
+    </pre>
+
+    <br /><br />
+
+    Similarly, there is a DownloadFileStep and DownloadFolderStep:
+
+    <br /><br />
+
+    <pre>
+        <code>
+
+<font color=grey>// Download a file</font>
+DownloadFileStep downloadFile = new DownloadFileStep("Download File");
+
+<font color=grey>// Specify the remote and local file names</font>
+downloadFile.setRemoteFilename(cm.getRemoteFolder() + "test.txt");
+downloadFile.setLocalFilename("c:\\data\\test.txt");
+
+context.addStep(downloadFile);
+context.runSteps();
+         </code>
+    </pre>
+
+    <pre>
+        <code>
+
+<font color=grey>// Download a temp folder</font>
+DownloadFolderStep downloadFolder = new DownloadFolderStep("DownloadFolder: temp");
+
+<font color=grey>// Specify the remote and local folder names</font>
+downloadFolder.setRemoteFolderName(cm.getRemoteFolder() + "temp/");
+downloadFolder.setLocalFolderName("c:\\temp");
+
+context.addStep(downloadFolder);
+context.runSteps();
+        </code>
+    </pre>
+</p>
+
+<a name="Etlapi"></a>
+
+<h1>Hive & ETL API</h1>
+
+<p>
+    Hive is a sub-project developed by Facebook to provide a SQL interface over HDFS and uses MapReduce to perform SQL <br />
+    operations.&nbsp;&nbsp;Hive is designed to perform data warehouse operations on extreme huge data volume over HDFS.<br />
+    SAP ETL API was created based on Hive to support SQL and provide JDBC interface:
+
+    <br /><br />
+
+    1. Create a table and load data to it (see the hightlighted line for adding step dependency) :
+
+    <br /> <br />
+
+    There are 3 steps in this example, uploading the tsv file (like the first example), creating a table and loading data to it.  <br />
+
+    The dependency required in here is for data loading step <2> wait for table creation step <1>
+
+    <br /><br />
+
+    <pre>
+        <code>
+import com.sap.hadoop.conf.ConfigurationManager;
+import com.sap.hadoop.etl.ContextFactory;
+import com.sap.hadoop.etl.ETLStepContextException;
+import com.sap.hadoop.etl.IContext;
+import com.sap.hadoop.etl.SQLStep;
+
+public static void main(String[] args) throws ETLStepContextException, InterruptedException, IOException {
+    ConfigurationManager cm = new ConfigurationManager("I123456", "hadoopsap");
+    IContext context = ContextFactory.createContext(cm);
+
+    <font color="grey">
+    ///////////////////////////////////////////////////////////////////////
+    // <0> Upload the input file "real_category.tsv"
+    ///////////////////////////////////////////////////////////////////////
+    </font>
+    UploadStep uploadStep = new UploadStep("RealCategoryUpload");
+    uploadStep.setLocalFilename("C:\\data\\real_category.tsv");
+    uploadStep.setRemoteFilename(context.getRemoteWorkingFolder() + "real_category.tsv");
+    <font color="grey">
+    ///////////////////////////////////////////////////////////////////////
+    // <1> Now create "category" table
+    ///////////////////////////////////////////////////////////////////////
+    </font>
+    SQLStep createTableCategory = new SQLStep("CREATE TABLE category");
+    createTableCategory.setSql(" CREATE EXTERNAL TABLE IF NOT EXISTS category " +
+                              " ( article_wpid INT, category_name STRING ) " +
+                              "   ROW FORMAT DELIMITED " +
+                              "   FIELDS TERMINATED BY '\t' " +
+                              "   LINES TERMINATED BY '\n'" +
+                              "   STORED AS TEXTFILE ");
+    <font color="grey">
+    ///////////////////////////////////////////////////////////////////////
+    // <2> Load the TSV to "category" table
+    ///////////////////////////////////////////////////////////////////////
+    </font>
+    SQLStep loadTableCategory = new SQLStep("LOAD TABLE category");
+    loadTableCategory.setSql(" LOAD DATA INPATH '" + context.getRemoteWorkingFolder() + "real_category.tsv' " +
+                             " OVERWRITE INTO TABLE category");
+
+    context.addStep(uploadStep);                               <font color="grey">// Add <0></font>
+    context.addStep(createTableCategory);                      <font color="grey">// Add <1></font>
+    <font color=red><strong>
+    context.addStep(loadTableCategory, createTableCategory);   <font color="grey">// Add <2> and make it depend on <1></font>
+    </strong></font>
+    context.runSteps();
+}
+        </code>
+    </pre>
+
+    <br /><br />
+    2. Perform SQL via JDBC on Hive (Complicated SQL like inner and outer joins are supported and will be included in the advanced code lab): <br /><br />
+    This example is to simply print the row count along with the 2 columns in category table using SQL <br />
+    <pre>
+        <code>
+import com.sap.hadoop.conf.ConfigurationManager;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public static void main(String[] arg) throws SQLException {
+    ConfigurationManager cm = new ConfigurationManager("I123456", "hadoopsap");
+    <font color="grey">// Get a JDBC connection to the Hive instance</font>
+    Connection conn = cm.getConnection();
+    Statement stmt = conn.createStatement();
+
+    <font color="grey">// Get the ResultSet</font>
+    ResultSet rs = stmt.executeQuery(" SELECT * FROM category ");
+    int resultCount = 1;
+    while (rs.next()) {
+        System.out.println(resultCount + ", " + rs.getString(1) + ", " + rs.getString(2));
+        resultCount++;
+    }
+    stmt.close();
+    conn.close();
+}
+
+        </code>
+    </pre>
+
+</p>
+
+<a name="Conclusion"></a>
+
+<h1>Conclusion</h1>
+
+<p>
+    Next code lab will introduce how to submit organic MapReduce to SAP Hadoop cluster using SAP Task Force web application.
+</p>
+
+</div>
+<!-- end gc-pagecontent -->
+</div>
+<!-- end gooey wrapper -->
+</div>
+<!-- end codesite content -->
+<div id="gc-footer" dir="ltr">
+    <div class="text">
+        ©2011 SAP
+    </div>
+</div>
+<!-- end gc-footer -->
+
+</body>
+</html>
+

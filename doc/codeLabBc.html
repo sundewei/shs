@@ -1,0 +1,426 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>Biz Case: People You May Know</title>
+    <link href="css/codesite.pack.04102009.css" type="text/css" rel="stylesheet">
+</head>
+
+<body class="gc-documentation">
+
+<div id="gc-container">
+
+<div id="gc-topnav">
+    <h1>Biz Case: People You May Know</h1>
+    <ul id="docs" class="gc-topnav-tabs">
+        <li>
+          <a href="codeLab.html" title="SAP Hadoop I/O and ETL API (Basic)">[1]</a>
+        </li>
+
+        <li>
+          <a href="codeLabShs.html" title="SAP Task Force Web App">[2]</a>
+        </li>
+
+        <li>
+          <a href="codeLabBc.html" class="selected" title="Biz Case: People You May Know">[3]</a>
+        </li>
+    </ul>
+</div>
+<!-- end gc-topnav -->
+
+<div class="g-section g-tpl-170">
+
+<div class="g-unit g-first" id="gc-toc">
+    <ul>
+        <li><h2>Quick Links</h2>
+            <ul>
+                <li>
+                    <a href="#Introduction" title="Introduction">Introduction</a>
+                </li>
+
+                <li>
+                    <a href="#Prerequisites" title="Prerequisites">Prerequisites</a>
+                </li>
+
+                <li>
+                    <a href="#pymk" title="Case 1, People You Might Know">People You May Know</a>
+                </li>
+
+                <li>
+                    <a href="#sa" title="Solution A">Solution: Use SAP I/O and ETL APIs</a>
+                </li>
+
+                <li>
+                    <a href="#Conclusion" title="Conclusion">Conclusion</a>
+                </li>
+
+            </ul>
+        </li>
+    </ul>
+
+</div>
+
+<a name="gc-pagecontent-anchor"></a>
+
+<div class="g-unit" id="gc-pagecontent">
+
+<a name="Introduction"></a>
+
+<h1>Introduction</h1>
+<p>
+    This code lab introduces an industrial use case and how it can be solved with the prototype SAP I/O, ETL API and Task Force web prototype application.  Because of the SAP Hadoop prototype there is a limitation to how quickly we can scale.  The sample input has been minimized, but scalability should not be an issue when Hadoop is adopted for production usage.
+</p>
+
+<a name="Prerequisites"></a>
+
+<h1>Prerequisites</h1>
+
+<p>
+    <ul class="bulletlist">
+        <li> Create a directory c:\codelab and c:\data</li>
+        <li> Install JDK 1.6 or higher <a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html" target="_new">here</a></li>
+        <li> Download to c:\codelab and include Hadoop libraries in your CLASSPATH (download from <a href="hadoop-core-0.20.2-cdh3u0.jar">here</a>)</li>
+        <li> Download to c:\codelab and include SAP Hadoop API in your CLASSPATH (download from <a href="sap_hadoop.jar">here</a>)</li>
+        <li> Download to c:\codelab and include 5 Hive-related jar files in your CLASSPATH (download <a href="hive-exec-0.6.0.jar">hive-exec-0.6.0</a>, <a href="hive-jdbc-0.6.0.jar">hive-jdbc-0.6.0</a>, <a href="hive-metastore-0.6.0.jar">hive-metastore-0.6.0</a>, <a href="hive-service-0.6.0.jar">hive-service-0.6.0</a>, <a href="libfb303.jar">libfb303</a>)</li>
+        <li> Download to c:\codelab and include <a href="log4j-1.2.15.jar">Log4J</a>, <a href="commons-logging-1.0.4.jar">Apache Common Logging API</a> and <a href="commons-io-2.0.1.jar">Apache Common IO API</a> in your CLASSPATH</li>
+        <li> (Optional) Request access to SAP Hadoop cluster by sending your employee ID to <a href="mailto:dewei.sun@sap.com">me</a> or you can just use the test account in the code snippets</li>
+        <li> The CSV ("Tab-separated values") file used in this code lab can be downloaded <a href="friends.csv">here</a>
+             (You can save the csv file to <b>c:\data\</b> which is the folder this code lab uses)</li>
+        <li> Copy and paste the following hostname mappings to your hosts file: <font color="red"> c:\Windows\System32\drivers\etc\hosts</font>
+            <pre>
+                <code>
+10.48.171.223		hadoop01
+10.48.171.224		hadoop02
+10.48.171.225		hadoop03
+10.48.171.226		hadoop04
+10.48.171.227		hadoop05
+10.48.171.228		hadoop06
+10.48.171.229		hadoop07
+10.48.171.230		hadoop08
+10.48.171.231		hadoop09
+10.48.171.216		hadoop10
+                </code>
+            </pre>
+        </li>
+    </ul>
+    <br />
+    Please contact <a href="mailto:dewei.sun@sap.com">Dewei Sun</a>, if there is any error opening above links.
+</p>
+
+<a name="pymk"></a>
+
+<h1>People You May Know</h1>
+
+<p>
+    "People You May Know" was a business use case from LinkedIn, it checks if 2 non-friend users may be friends based on whether they have common friends.
+    The real logic is more complicated than what just described, for example, 2 people having common friends who are job recruiters probably are not "real" friends.
+    In this example, we will introduce this problem as straightforward as possible and let users discover possible further enhancement in the future.
+    <br /><br />
+    <strong>Inputs:</strong><br />
+    The input for this use case is a CSV file containing rows of 2 fields, person id and friend person id.
+    Each row represents a friendship between 2 people and the goal is to find out if any 2 non-friend people may be friends.
+    The input file looks likes this:<br /><br />
+    <pre>
+        <code>
+3561,9036
+3561,9368
+3560,9036
+3560,3994
+3560,8786
+9036,3561
+9036,3560
+...
+        </code>
+    </pre>
+
+    <br />
+
+    The input file used in this use case can be downloaded <a href="friends.csv">here</a>.
+
+    <br /><br />
+
+    <strong>Outputs:</strong><br />
+    The output for this use case can be in various forms or saved to other persistent layers but we will simple save the output as a text file.  The format will be:
+
+    <br /><br />
+
+    <sub>person_id:friend_id</sub>
+
+    <br /><br />
+
+    <pre>
+        <code>
+1,2
+1,3
+1,4
+1,7
+1,8
+2,1
+2,3
+3,1
+4,1
+4,5
+4,7
+5,4
+5,7
+7,1
+7,4
+7,5
+8,1
+8,9
+9,8
+9,12
+12,9
+...
+        </code>
+    </pre>
+
+    <br /><br />
+
+    <a name="sa"></a>
+
+    <h1>Solution: Use SAP I/O and ETL APIs</h1>
+
+    <br /><br />
+
+    Step 1: Upload the input to HDFS:
+
+    <br /><br />
+
+    There are 2 ways you can upload the input file to HDFS:  Using SAP I/O API or using Task Force web application:
+
+    <br /><br />
+
+    <sup>1) Using SAP I/O API:</sup>
+
+    <br /><br />
+
+    <pre>
+        <code>
+ConfigurationManager cm = new ConfigurationManager("I123456", "hadoopsap");
+IContext context = ContextFactory.createContext(cm);
+
+UploadStep uploadStep = new UploadStep("UploadFriendsCsv");
+<font color=grey>// specify local file and remote file names</font>
+uploadStep1.setLocalFilename("c:\\data\\friends.csv");
+uploadStep1.setRemoteFilename(context.getRemoteWorkingFolder() + "friends.csv");
+
+context.addStep(uploadStep);
+context.runSteps();
+        </code>
+    </pre>
+
+    <br /><br />
+
+    <sup>2) Using Task Force web application:</sup>
+
+    <br /><br />
+
+    Go to <a href="http://hadoop.pal.sap.corp:8080/shs/jsp/login.jsp" target="_new">login</a> page and after logging in, you can use the multipart-uploader to upload friends.csv and it will be saved to your HDFS person folder
+    which is <font color=red>/user/I123456/</font> if you use the visitor account.
+
+    <br /><br />
+
+    Step 2: Create and load a Hive table to represent friends.csv:
+
+    <br /><br />
+
+    <pre>
+        <code>
+ConfigurationManager cm = new ConfigurationManager("I827779", "hadoopsap");
+IContext context = ContextFactory.createContext(cm);
+
+<font color=grey>
+///////////////////////////////////////////////////////////////////////
+// <1> Now create "friends" table
+///////////////////////////////////////////////////////////////////////
+</font>
+SQLStep createTableFriends = new SQLStep("CREATE TABLE friends");
+createTableFriends.setSql(" CREATE EXTERNAL TABLE IF NOT EXISTS friends " +
+                          " ( id INT, fid INT ) " +
+                          "   ROW FORMAT DELIMITED " +
+                          "   FIELDS TERMINATED BY ',' " +
+                          "   LINES TERMINATED BY '\n'" +
+                          "   STORED AS TEXTFILE ");
+<font color=grey>
+///////////////////////////////////////////////////////////////////////
+// <2> Load the CSV to "friends" table
+///////////////////////////////////////////////////////////////////////
+</font>
+SQLStep loadTableFriends = new SQLStep("LOAD TABLE friends");
+loadTableFriends.setSql(" LOAD DATA INPATH '" + context.getRemoteWorkingFolder() + "friends.csv' " +
+                        " OVERWRITE INTO TABLE friends");
+
+
+context.addStep(createTableFriends);                    <font color=grey>// Add <1></font>
+context.addStep(loadTableFriends, createTableFriends);  <font color=grey>// Add <2> and make it depend on <1></font>
+
+context.runSteps();
+        </code>
+    </pre>
+
+    <br /><br />
+
+    Step 3: Perform SQL against friends table:
+
+    <br /><br />
+
+    <pre>
+        <code>
+ConfigurationManager cm = new ConfigurationManager("I827779", "hadoopsap");
+IContext context = ContextFactory.createContext(cm);
+
+<font color="grey">// Now perform a SQL to find all possible friends for any 2 people</font>
+SQLStep sqlStep = new SQLStep("FinalJoinStep");
+sqlStep.setSql("  INSERT OVERWRITE DIRECTORY '" + context.getRemoteWorkingFolder() + "output' \n" +
+               "  SELECT distinct concat(me.ID, ',', f2.FID) " +
+               "  FROM persons me JOIN person_friends f1 ON (me.ID = f1.ID) " +
+               "                  JOIN person_friends f2 ON (f1.FID = f2.ID) " +
+               "                  JOIN person_friends f3 ON (f2.FID = f3.ID) " +
+               "                  LEFT OUTER JOIN person_friends pf ON (me.ID = pf.ID and f2.FID = pf.FID) " +
+               "  WHERE pf.FID IS NULL AND me.ID <> f2.FID");
+context.addStep(sqlStep);
+context.runSteps();
+        </code>
+    </pre>
+
+    <br /><br />
+
+    <strong>You can chain all steps together and assign dependency among them:</strong>
+
+    <br /><br />
+
+    <pre>
+        <code>
+ConfigurationManager cm = new ConfigurationManager("I123456", "hadoopsap");
+IContext context = ContextFactory.createContext(cm);
+
+<font color=grey>// The upload step</font>
+UploadStep uploadStep = new UploadStep("UploadFriendsCsv");
+<font color=grey>// specify local file and remote file names</font>
+uploadStep.setLocalFilename("c:\\data\\friends.csv");
+uploadStep.setRemoteFilename(context.getRemoteWorkingFolder() + "friends.csv");
+
+<font color=grey>// Create "friends" table step</font>
+SQLStep createTableFriends = new SQLStep("CREATE TABLE friends");
+createTableFriends.setSql(" CREATE EXTERNAL TABLE IF NOT EXISTS friends " +
+                          " ( id INT, fid INT ) " +
+                          "   ROW FORMAT DELIMITED " +
+                          "   FIELDS TERMINATED BY ',' " +
+                          "   LINES TERMINATED BY '\n'" +
+                          "   STORED AS TEXTFILE ");
+
+<font color=grey>// Load the CSV to "friends" table step</font>
+SQLStep loadTableFriends = new SQLStep("LOAD TABLE friends");
+loadTableFriends.setSql(" LOAD DATA INPATH '" + context.getRemoteWorkingFolder() + "friends.csv' " +
+                        " OVERWRITE INTO TABLE friends");
+
+<font color="grey">// Now perform a SQL to find all possible friends for any 2 people</font>
+SQLStep sqlStep = new SQLStep("FinalJoinStep");
+sqlStep.setSql("  INSERT OVERWRITE DIRECTORY '" + context.getRemoteWorkingFolder() + "output' \n" +
+               "  SELECT distinct concat(me.ID, ',', f1.FID) \n "+
+               "  FROM friends me \n" +
+               "  LEFT OUTER JOIN friends f1 ON (me.FID = f1.ID) \n"+
+               "  LEFT OUTER JOIN friends f2 ON (f1.FID = f2.ID AND f2.FID = me.ID) \n"+
+               "  WHERE me.ID <> f1.FID and f2.FID IS NULL");
+
+
+<font color=grey> // Now we need to deal with dependency</font>
+<font color=grey> // Add the upload step </font>
+context.addStep(uploadStep);
+
+<font color=grey> // Add the create table step, it doesn't need to depend on the upload step </font>
+context.addStep(createTableFriends);
+
+<font color=grey> // Add table loading step, it needs to depend on the upload and create table steps </font>
+<font color=red>context.addStep(loadTableFriends, uploadStep, createTableFriends);</font>
+
+<font color=grey>
+// Add the SQL step, it needs to depend on table loading step which implies that it will have to wait for
+// table creation and upoading steps</font>
+<font color=red>context.addStep(sqlStep, loadTableFriends);</font>
+
+context.runSteps();
+        </code>
+    </pre>
+
+    <br /><br />
+
+    Step 4: Get the result back
+
+    <br /><br />
+
+    Usually the output directory is specified in your code, so to download the output, you need to setup a DownloadFileStep or DownloadFolderStep (SAP I/O API) to download your output file/folder to your local disk.
+
+    <br /><br />
+
+    To download the entire output folder:
+
+    <br /><br />
+
+    <pre>
+        <code>
+<font color=grey>// Download the entire output folder</font>
+DownloadFolderStep downloadFolder = new DownloadFolderStep("DownloadOutputFolder");
+
+<font color=grey>// Specify the remote and local folder names</font>
+downloadFolder.setRemoteFolderName(cm.getRemoteFolder() + "output");
+downloadFolder.setLocalFolderName("c:\\data\\output");
+
+context.addStep(downloadFolder);
+context.runSteps();
+        </code>
+    </pre>
+
+    <br /><br />
+
+    To just download result file:
+
+    <br /><br />
+
+    <pre>
+        <code>
+<font color=grey>// Download just the output file</font>
+DownloadFileStep downloadFile = new DownloadFileStep("download");
+
+<font color=grey>// Specify the remote and local file names</font>
+downloadFile.setRemoteFilename(cm.getRemoteFolder() + "output/part-r-00000");
+downloadFile.setLocalFilename("c:\\data\\part-r-00000");
+
+context.addStep(downloadFile);
+context.runSteps();
+        </code>
+    </pre>
+
+    <br /><br />
+
+    Of course, you can add this download step to your other steps but I will leave it to you as an exercise.  Be sure to add the right dependency for the download step.
+
+</p>
+
+<a name="Conclusion"></a>
+
+<h1>Conclusion</h1>
+
+<p>
+    There are other Hadoop solutions for this case like using HBase but it will require understanding the NoSQL database concept and some learning curve.
+</p>
+
+</div>
+<!-- end gc-pagecontent -->
+</div>
+<!-- end gooey wrapper -->
+</div>
+<!-- end codesite content -->
+<div id="gc-footer" dir="ltr">
+    <div class="text">
+        ©2011 SAP
+    </div>
+</div>
+<!-- end gc-footer -->
+
+</body>
+</html>
+

@@ -34,6 +34,7 @@ public class ShsContext {
     public static final String EMPLOYEE_ID_REGEX = "I\\d{6}";
 
     public static final String EMPLOYEE_ID = "employeeId";
+    public static final String PASSWORD = "password";
     public static final String CONFIGURATION_MANAGER = "cm";
     public static final String JAR_FILENAME = "jfn";
     public static final String CLASS_NAME = "className";

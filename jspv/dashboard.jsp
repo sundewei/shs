@@ -42,23 +42,19 @@
                         </form>
                     </td>
                     <td align="right" width=400>
-                        <div>
-                            <a href="" title="logoff"><img src="../resources/gfx/logout.jpg" width=20 height=20></a>
-                        </div>
+                        <div class="rightText">Hi, <%=employeeId%></div><a href="" title="logoff"><img src="../resources/gfx/logout.jpg" width=20 height=20></a>
                     </td>
                 </tr>
                 <tr>
                     <td valign="top">
                         <table id="hdfsFiles" class="fileBrowser">
-                            <tr><td class='headline'>File(s)</td><td class='headline'>File Size</td><td class='headline'>Modification Time</td></tr>
-                            <tr><td class='field'>No file found!</td><td class='field'>&nbsp;</td><td class='field'>&nbsp;</td></tr>
                         </table>
                         <table id="files"></table>
                     </td>
                     <td valign="top">
                         <div class="info">
-                            - Before submitting your task, please upload the input files.<br>
-                            - Your root directory: <b><%=hdfsPersonFolder%></b>
+                            - Your root directory: <strong><font color="blue"><%=hdfsPersonFolder%></font></strong><br />
+                            - Click a filename to download
                         </div>
                     </td>
                 </tr>

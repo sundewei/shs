@@ -87,3 +87,7 @@ a:hover {
     font-weight: bold;
     color: red;
 }
+
+img {
+    vertical-align:middle;
+}

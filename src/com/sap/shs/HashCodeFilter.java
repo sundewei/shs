@@ -1,5 +1,6 @@
 package com.sap.shs;
 
+import com.sap.hadoop.conf.ConfigurationManager;
 import org.apache.commons.lang.StringUtils;
 
 import javax.servlet.Filter;
@@ -35,16 +36,17 @@ public class HashCodeFilter implements Filter {
             throws java.io.IOException, javax.servlet.ServletException {
         HttpServletRequest req = (HttpServletRequest) servletRequest;
         HttpServletResponse res = (HttpServletResponse) servletResponse;
-        HttpSession session = req.getSession();
+        HttpSession session = req.getSession(true);
         String employeeId = (String)session.getAttribute(ShsContext.EMPLOYEE_ID);
-        /*
+        String password = (String)session.getAttribute(ShsContext.PASSWORD);
+
         if (StringUtils.isEmpty(employeeId)) {
             Cookie empIdCookie = getCookie(req.getCookies(), ShsContext.EMPLOYEE_ID);
             if (empIdCookie != null) {
                 employeeId = empIdCookie.getValue();
             }
         }
-        */
+
         if (StringUtils.isEmpty(employeeId)) {
             res.sendRedirect(loginJsp);
             return;
@@ -53,6 +55,12 @@ public class HashCodeFilter implements Filter {
             // Will get deleted when user closes the browser
             hashCookie.setMaxAge(-1);
             res.addCookie(hashCookie);
+            Cookie pwdCookie = new Cookie(ShsContext.PASSWORD, password);
+            // Will get deleted when user closes the browser
+            pwdCookie.setMaxAge(-1);
+            res.addCookie(pwdCookie);
+            ConfigurationManager configurationManager = new ConfigurationManager(employeeId, password);
+            session.setAttribute(ShsContext.CONFIGURATION_MANAGER, configurationManager);
         }
         filterChain.doFilter(servletRequest, servletResponse);
     }

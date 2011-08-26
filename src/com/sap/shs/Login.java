@@ -1,9 +1,7 @@
 package com.sap.shs;
 
 import com.sap.hadoop.conf.ConfigurationManager;
-import org.apache.commons.lang.StringUtils;
 
-import javax.security.auth.login.Configuration;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
@@ -20,22 +18,22 @@ import java.io.IOException;
  */
 public class Login extends HttpServlet {
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String username = request.getParameter("username");
-        if (username == null || username.equals("")) {
+        String employeeId = request.getParameter("username");
+        if (employeeId == null || employeeId.equals("")) {
             Cookie usernameCookie = getCookie(request.getCookies(), ShsContext.EMPLOYEE_ID);
             if (usernameCookie != null) {
-                username = usernameCookie.getValue();
+                employeeId = usernameCookie.getValue();
             }
         }
-        if (username == null || !username.matches(ShsContext.EMPLOYEE_ID_REGEX)) {
+        if (employeeId == null || !employeeId.matches(ShsContext.EMPLOYEE_ID_REGEX)) {
             response.sendRedirect(request.getRequestURI());
             return;
         }
         String password = request.getParameter("password");
-        ConfigurationManager configurationManager = new ConfigurationManager(username, password);
+        ConfigurationManager configurationManager = new ConfigurationManager(employeeId, password);
 
         String dest = request.getParameter("dest");
-        request.getSession().setAttribute(ShsContext.EMPLOYEE_ID, username);
+        request.getSession().setAttribute(ShsContext.EMPLOYEE_ID, employeeId);
         request.getSession().setAttribute(ShsContext.CONFIGURATION_MANAGER, configurationManager);
         // Creating the local personal folder and set it in session
         try {

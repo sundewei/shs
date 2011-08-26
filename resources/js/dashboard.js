@@ -190,7 +190,7 @@ function getJobStatus(jobid) {
 function getHdfsTableContent(jsonObj, hdfsPersonFolder) {
     var count = 0;
     var content = "";
-    content += "<tr><td class='headline'>File(s)</td><td class='headline'>File Size</td><td class='headline'>Modification Time</td></tr>";
+    content += "<tr><td class='headline'>File(s)<span class='rightText'>New Folder</span></td><td class='headline'>File Size</td><td class='headline'>Modification Time</td></tr>";
     while (true) {
         var fileName = eval("jsonObj.fileName"+count);
         var fileLen = eval("jsonObj.fileLen"+count);
@@ -199,7 +199,8 @@ function getHdfsTableContent(jsonObj, hdfsPersonFolder) {
             break;
         } else {
             var displayFilename = fileName.substring(fileName.indexOf(hdfsPersonFolder));
-            content += "<tr><td class='field'><div id='deleteFile" + count + "' title='"+fileName+"'><a href='javascript:deleteFile(\"" + fileName + "\")'>X</a>&nbsp;&nbsp;" + displayFilename + "</div></td><td class='field'>" + fileLen + "</td><td class='field'>" + fileModificationTime + "</td></tr>";
+            var shortenName = getShortenName(displayFilename, 65)
+            content += "<tr><td class='field'><div id='deleteFile" + count + "' title='"+fileName+"'><a href='javascript:deleteFile(\"" + fileName + "\")'>X</a>&nbsp;&nbsp;<a href='/shs/dwn?hdfsFilename=" + escape(displayFilename) + "' title='" + displayFilename + "'>" + shortenName + "</a></div></td><td class='field'>" + fileLen + "</td><td class='field'>" + fileModificationTime + "</td></tr>";
         }
         count++;
     }
@@ -208,6 +209,15 @@ function getHdfsTableContent(jsonObj, hdfsPersonFolder) {
         content += "<tr><td class='field'>No file found!</td><td class='field'>&nbsp;</td><td class='field'>&nbsp;</td></tr>";
     }
     return content;
+}
+
+function getShortenName(text, len) {
+    if(text.length > len) {
+        return text.substring(0, len-3) + "...";
+    } else {
+        return text;
+    }
+
 }
 
 function getJarClassTableContent(jsonObj, filename) {

@@ -1,5 +1,5 @@
 table.fileBrowser {
-    width: 580px;
+    width: 640px;
     background-color: #fafafa;
     border: 1px #000000 solid;
     border-collapse: collapse;
@@ -57,4 +57,10 @@ table.emailAlert {
     border-top:1px solid #dddddd;
     border-bottom:2px solid #666666;
     padding:7px 0;
+}
+
+.rightText {
+    font-size:10px;
+    font-weight:normal;
+    text-align:right
 }

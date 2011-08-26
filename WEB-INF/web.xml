@@ -28,6 +28,17 @@
     </filter-mapping>
 
     <servlet>
+        <servlet-name>DownloadFile</servlet-name>
+        <servlet-class>com.sap.shs.DownloadFile</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>DownloadFile</servlet-name>
+        <url-pattern>/dwn</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>GetJobStatus</servlet-name>
         <servlet-class>com.sap.shs.GetJobStatus</servlet-class>
         <load-on-startup>1</load-on-startup>

@@ -28,7 +28,7 @@
 <body>
     <div id="tabs">
         <ul>
-            <li><a href="#tabs-1">Upload Input Files</a></li>
+            <li><a href="#tabs-1">HDFS Admin</a></li>
             <li><a href="#tabs-2">Submit a Task</a></li>
             <li><a href="#tabs-3">Task History</a></li>
         </ul>
@@ -38,18 +38,22 @@
                     <td>
                         <form id="file_upload" action="/shs/uuu" method="POST" enctype="multipart/form-data">
                             <input type="file" name="file" multiple>
+                            <input type="hidden" id="nowFolder" name="nowFolder" value="<%=hdfsPersonFolder%>">
                             <div class="js">Upload Input Files</div>
                         </form>
                     </td>
                     <td align="right" width=400>
-                        <div class="rightText">Hi, <%=employeeId%></div><a href="" title="logoff"><img src="../resources/gfx/logout.jpg" width=20 height=20></a>
+                        <span class="rightText">Hi, <%=employeeId%>  |  <a href="/shs/jsp/login.jsp" title="logoff">Louout</a></span>
                     </td>
                 </tr>
                 <tr>
                     <td valign="top">
+                        <table id="currentFolderName" class="currentFolderName">
+                        </table>
                         <table id="hdfsFiles" class="fileBrowser">
                         </table>
-                        <table id="files"></table>
+                        <table id="files">
+                        </table>
                     </td>
                     <td valign="top">
                         <div class="info">
@@ -72,7 +76,7 @@
                     </td>
                     <td align="right" width=400>
                         <div>
-                            <a href="" title="logoff"><img src="../resources/gfx/logout.jpg" width=20 height=20></a>
+                            <span class="rightText">Hi, <%=employeeId%>  |  <a href="/shs/jsp/login.jsp" title="logoff">Louout</a></span>
                         </div>
                     </td>
                 </tr>
@@ -117,7 +121,7 @@
                     </td>
                     <td align="right" width=648>
                         <div>
-                            <a href="" title="logoff"><img src="../resources/gfx/logout.jpg" width=20 height=20></a>
+                            <span class="rightText">Hi, <%=employeeId%>  |  <a href="/shs/jsp/login.jsp" title="logoff">Louout</a></span>
                         </div>
                     </td>
                 </tr>
@@ -157,7 +161,7 @@
         var jobStatusUrl = "/shs/ggg";
         var jobHistoryUrl = "/shs/hhh";
         var hdfsPersonFolder = "<%=hdfsPersonFolder%>";
-
+        var nowFolder = "<%=hdfsPersonFolder%>";
 
         /*global $ */
         $(function () {
@@ -167,9 +171,7 @@
             hideOldContent();
 
             // Build the HDFS folder content for the first time
-            $.getJSON(listHdfsUrl, {hdfsFolder: hdfsPersonFolder}, function(json){
-                $("#hdfsFiles").html(getHdfsTableContent(json, hdfsPersonFolder));
-            });
+            refreshFileBrowser();
 
             // Build the Task History table
             $.getJSON(jobHistoryUrl, {}, function(json){
@@ -189,11 +191,7 @@
                             '<\/button><\/td><\/tr>');
                 },
                 buildDownloadRow: function (file) {
-                    $.getJSON(listHdfsUrl, {hdfsFolder: hdfsPersonFolder}, function(json){
-                        $("table#hdfsFiles").hide();
-                        $("table#hdfsFiles").html(getHdfsTableContent(json, hdfsPersonFolder));
-                        $("table#hdfsFiles").fadeIn(2000);
-                    });
+                    refreshFileBrowser();
                     return $('');
                 }
             });

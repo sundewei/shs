@@ -1,3 +1,14 @@
+table.currentFolderName {
+    width: 640px;
+    border: none;
+    border-collapse: collapse;
+    border-spacing: 0px;
+    font-family: Verdana;
+    font-weight: bold;
+    font-size: 14px;
+    white-space:nowrap;
+}
+
 table.fileBrowser {
     width: 640px;
     background-color: #fafafa;
@@ -14,7 +25,7 @@ td.headline {
     font-weight: bold;
     font-size: 12px;
     color: #404040;
-    white-space:nowrap;
+    white-space:nowrap;    
 }
 
 td.field {
@@ -57,10 +68,4 @@ table.emailAlert {
     border-top:1px solid #dddddd;
     border-bottom:2px solid #666666;
     padding:7px 0;
-}
-
-.rightText {
-    font-size:10px;
-    font-weight:normal;
-    text-align:right
 }

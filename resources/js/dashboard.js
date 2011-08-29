@@ -187,20 +187,30 @@ function getJobStatus(jobid) {
     );
 }
 
-function getHdfsTableContent(jsonObj, hdfsPersonFolder) {
+function getHdfsTableContent(jsonObj, folder, showFolderUp) {
     var count = 0;
     var content = "";
-    content += "<tr><td class='headline'>File(s)<span class='rightText'>New Folder</span></td><td class='headline'>File Size</td><td class='headline'>Modification Time</td></tr>";
+    content += "<tr><td class='headline' style='min-width:400px;'>File(s)</td><td class='headline'>File Size</td><td class='headline'>Modification Time</td></tr>";
     while (true) {
         var fileName = eval("jsonObj.fileName"+count);
         var fileLen = eval("jsonObj.fileLen"+count);
         var fileModificationTime = eval("jsonObj.fileModificationTime"+count);
+        var isDir = eval("jsonObj.isDir"+count);
+        if (count == 0 && showFolderUp) {
+            content += "<tr><td class='field'>&nbsp;&nbsp;&nbsp;&nbsp;<a href='javascript:changeFolder(\"..\")' title='Back to parent folder'>&nbsp;<img width=16 length=16 src='/shs/resources/gfx/folder.jpg' />&nbsp;..</a></div></td><td class='field'>-</td><td class='field'>-</td></tr>";
+        }
         if (!fileName) {
             break;
         } else {
-            var displayFilename = fileName.substring(fileName.indexOf(hdfsPersonFolder));
-            var shortenName = getShortenName(displayFilename, 65)
-            content += "<tr><td class='field'><div id='deleteFile" + count + "' title='"+fileName+"'><a href='javascript:deleteFile(\"" + fileName + "\")'>X</a>&nbsp;&nbsp;<a href='/shs/dwn?hdfsFilename=" + escape(displayFilename) + "' title='" + displayFilename + "'>" + shortenName + "</a></div></td><td class='field'>" + fileLen + "</td><td class='field'>" + fileModificationTime + "</td></tr>";
+            var displayFilename = fileName.substring(fileName.indexOf(folder));
+            var shortenName = getShortenName(displayFilename, 65);
+            var hpLink = "/shs/dwn?hdfsFilename=" + escape(displayFilename);
+            var icon = "/shs/resources/gfx/document.png";
+            if (isDir == '0') {
+                icon = "/shs/resources/gfx/folder.jpg";
+                hpLink = "javascript:changeFolder(\""+escape(fileName)+"\")";
+            }
+            content += "<tr><td class='field'><div id='deleteFile" + count + "' title='"+fileName+"'><a href='javascript:deleteFile(\"" + fileName + "\")'>X</a>&nbsp;&nbsp;<a href='" + hpLink + "' title='" + displayFilename + "'>&nbsp;<img width=16 length=16 src='"+icon+"' />&nbsp;" + shortenName + "</a></div></td><td class='field'>" + fileLen + "</td><td class='field'>" + fileModificationTime + "</td></tr>";
         }
         count++;
     }
@@ -211,7 +221,66 @@ function getHdfsTableContent(jsonObj, hdfsPersonFolder) {
     return content;
 }
 
+function sameFolder(folder1, folder2) {
+    if (folder1 == folder2) {
+        return true;
+    } else {
+        if (folder1.charAt(folder1.length -1) != '/') {
+            folder1 = folder1 + "/";
+        }
+        if (folder2.charAt(folder2.length -1) != '/') {
+            folder2 = folder2 + "/";
+        }
+
+        if(folder1 == folder2) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+}
+
+function changeFolder(anotherFolder) {
+    if (anotherFolder == '..') {
+        nowFolder = nowFolder.substring(0, nowFolder.lastIndexOf("/"));
+    } else {
+        nowFolder = anotherFolder;
+    }
+    $("input#nowFolder").val(nowFolder);
+    refreshFileBrowser();
+}
+
+function getCurrentFolderHtml() {
+    if(sameFolder(nowFolder, hdfsPersonFolder)) {
+		return "<tr><td class='leftText'>Current Directory:&nbsp;&nbsp;<font color='#0015B3'>" + nowFolder + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</font><font color='green'>(Root Directory!)</font></td><td class='rightText'>&nbsp;</td><td class='rightText'><a href='javascript:createDirectory()'>New Directory</a></td></td>";
+    } else {
+	    return "<tr><td class='leftText'>Current Directory:&nbsp;&nbsp;<font color='#0015B3'>" + nowFolder + "</font></td><td class='rightText'><a href='javascript:changeFolder(\"" + escape(hdfsPersonFolder) + "\")'>Back to Root!</a></td><td class='rightText'><a href='javascript:createDirectory()'>New Directory</a></td></td>";
+    }
+}
+
+function createDirectory() {
+    var newFolderName = prompt("Please enter the new directory name: ");
+    // Only letters and underscore
+    var folderNameRegExp = "[a-zA-Z0-9_]+";
+    var regExp = new RegExp(folderNameRegExp);
+    var match = regExp.exec(newFolderName);
+    if (match == null || !newFolderName || newFolderName.length == 0 || match.length != newFolderName.length) {
+        alert("New directory name is not valid, only alphanumerical and underscore characters are acceptable (No space character, too)!");
+        return;
+    }
+
+    $.post("/shs/mkdirs", {"hdfsFolder": nowFolder, "folderName": newFolderName},
+            function(){
+                refreshFileBrowser();
+            }, "text");
+}
+
 function getShortenName(text, len) {
+    var lastSlashIndex = text.lastIndexOf("/");
+
+    text = text.substring(lastSlashIndex + 1, text.length);
+
     if(text.length > len) {
         return text.substring(0, len-3) + "...";
     } else {
@@ -243,16 +312,17 @@ function getJarClassTableContent(jsonObj, filename) {
 }
 
 function refreshFileBrowser() {
-    $.getJSON(listHdfsUrl, {hdfsFolder: hdfsPersonFolder}, function(json){
+    $.getJSON(listHdfsUrl, {hdfsFolder: nowFolder}, function(json){
+        $("table#currentFolderName").html(getCurrentFolderHtml());
         $("table#hdfsFiles").hide();
-        $("table#hdfsFiles").html(getHdfsTableContent(json));
+        $("table#hdfsFiles").html(getHdfsTableContent(json, nowFolder, !sameFolder(nowFolder, hdfsPersonFolder)));
         $("table#hdfsFiles").fadeIn(2000);
     });
 }
 
 function deleteFile(filename) {
     if(confirm("Delete " + hdfsPersonFolder + filename + "?")) {
-        $.post("/shs/ddd", {"hdfsFolder": hdfsPersonFolder, "filenameToDelete": filename, "action": "delete"},
+        $.post("/shs/ddd", {"hdfsFolder": nowFolder, "filenameToDelete": filename, "action": "delete"},
             function(){
                 refreshFileBrowser();
             }, "text");

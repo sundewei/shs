@@ -91,3 +91,15 @@ a:hover {
 img {
     vertical-align:middle;
 }
+
+.rightText {
+    font-size:10px;
+    font-weight:bold;
+    text-align:right
+}
+
+.leftText {
+    font-size:10px;
+    font-weight:bold;
+    text-align:left
+}

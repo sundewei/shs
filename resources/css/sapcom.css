@@ -710,7 +710,7 @@
 			#atoz-menu ul a.on { color:#fff; background:#666; }
 			#atoz-menu ul a.disabled { color: #999; cursor:default; }
 			#atoz-search { background: url(/global/ui/images/backgrounds/bkg-azsearch-input.png) no-repeat left; display: block; height: 21px; width: 154px; position: absolute; top: 69px; right: 50px; border: none; }
-			#atoz-search label { position: absolute; border-style: none; top: 2px; left: 7px; display: block; font-size:12px; }
+			#atoz-search label { position: absolute; border: none; top: 2px; left: 7px; display: block; font-size:12px; }
 			 html.ie7 #atoz-search label { top:5px; }
 			#atoz-input { background:none; height: 15px; width:147px; padding:0px 0px 2px 6px; }
 			#atoz-submit { position:absolute; right:1px; top:4px; background: url(/global/ui/images/backgrounds/bkg-azsearch-submit.png) no-repeat 0 -2px; height: 17px; width: 17px; border:none; cursor:pointer; text-indent:999em; }

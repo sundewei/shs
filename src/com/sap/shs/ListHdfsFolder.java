@@ -25,8 +25,6 @@ import java.util.Map;
  * To change this template use File | Settings | File Templates.
  */
 public class ListHdfsFolder extends HttpServlet {
-
-
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String hdfsFolder = request.getParameter("hdfsFolder");
         HttpSession session = request.getSession(true);
@@ -40,13 +38,12 @@ public class ListHdfsFolder extends HttpServlet {
             response.setContentType("application/json");
             int count = 0;
             for (IFile file : files) {
-                //if (!file.getFilename().contains("/parsed/") && !file.getFilename().contains("/output/") && !file.getFilename().contains("/trend/")) {
-                    jsonKeyValMap.put("fileName" + count, file.getFilename());
-                    jsonKeyValMap.put("fileOwner" + count, file.getOwner());
-                    jsonKeyValMap.put("fileLen" + count, FileUtils.byteCountToDisplaySize(file.getLen()));
-                    jsonKeyValMap.put("fileModificationTime" + count, ShsContext.DATE_FORMAT.format(new Date(file.getModificationTime())));
-                    count++;
-                //}
+                jsonKeyValMap.put("fileName" + count, file.getFilename());
+                jsonKeyValMap.put("fileOwner" + count, file.getOwner());
+                jsonKeyValMap.put("fileLen" + count, FileUtils.byteCountToDisplaySize(file.getLen()));
+                jsonKeyValMap.put("fileModificationTime" + count, ShsContext.DATE_FORMAT.format(new Date(file.getModificationTime())));
+                jsonKeyValMap.put("isDir" + count, file.isDir() ? "0": "1");
+                count++;
             }
         } catch (Exception ee) {
             IOException iee = new IOException(ee);

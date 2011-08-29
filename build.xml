@@ -55,6 +55,10 @@
         <copy todir="${build}/resources">
              <fileset file="resources/**"/>
         </copy>
+
+        <copy todir="${build}/">
+             <fileset file="index.jsp"/>
+        </copy>
     </target>
 
     <target name="dist" depends="compile" description="generate the distribution">

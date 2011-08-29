@@ -34,6 +34,17 @@
     </servlet>
 
     <servlet-mapping>
+        <servlet-name>CreateFolder</servlet-name>
+        <url-pattern>/mkdirs</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>CreateFolder</servlet-name>
+        <servlet-class>com.sap.shs.CreateFolder</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
         <servlet-name>DownloadFile</servlet-name>
         <url-pattern>/dwn</url-pattern>
     </servlet-mapping>

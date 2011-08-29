@@ -46,10 +46,9 @@ public class UploadFile extends HttpServlet {
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(true);
-        String employeeId = (String) session.getAttribute(ShsContext.EMPLOYEE_ID);
         ConfigurationManager configurationManager =
                 (ConfigurationManager) session.getAttribute(ShsContext.CONFIGURATION_MANAGER);
-        String hdfsPersonalFolder = ShsContext.getPersonHdfsFolder(employeeId);
+        String nowFolder = null;
         List<String> filenames;
         try {
             List<FileItem> items = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
@@ -63,19 +62,31 @@ public class UploadFile extends HttpServlet {
                         InputStream fileContent = item.getInputStream();
                         try {
                             // Upload the file from request directly to HDFS
-                            uploadToHdfs(hdfsPersonalFolder, filename, fileContent, configurationManager);
+                            uploadToHdfs(nowFolder, filename, fileContent, configurationManager);
                         } catch (Exception ee) {
                             IOException iee = new IOException(ee);
                             iee.setStackTrace(ee.getStackTrace());
                         }
                         fileContent.close();
                     }
+                } else {
+                    if(item.getFieldName().equals("nowFolder")) {
+                        nowFolder = item.getString();
+                    }
+                }
+            }
+
+            if (nowFolder == null || nowFolder.length() == 0) {
+                throw new ServletException("Destination HDFS folder is null in UploadFile servlet.");
+            } else {
+                if(!nowFolder.endsWith("/")) {
+                    nowFolder = nowFolder + "/";
                 }
             }
             String[] jsonObject = null;
             // Read the files in HDFS person folder
             try {
-                jsonObject = getHdfsJsons(hdfsPersonalFolder, filenames, configurationManager);
+                jsonObject = getHdfsJsons(nowFolder, filenames, configurationManager);
             } catch (Exception ee) {
                 IOException iee = new IOException(ee);
                 iee.setStackTrace(ee.getStackTrace());
@@ -109,6 +120,9 @@ public class UploadFile extends HttpServlet {
     private void uploadToHdfs(String hdfsFolder, String filename, InputStream in, ConfigurationManager cm) throws Exception {
         IFileSystem filesystem = cm.getFileSystem();
         String simpleFilename = filename.substring(filename.lastIndexOf(File.separator) + 1);
+        if(!hdfsFolder.endsWith("/")) {
+            hdfsFolder = hdfsFolder + "/";
+        }
         String remoteFilename = hdfsFolder + simpleFilename;
         OutputStream out = filesystem.getOutputStream(remoteFilename);
         IOUtils.copy(in, out);

@@ -3,7 +3,6 @@ package com.sap.shs;
 import org.apache.commons.lang.StringUtils;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -20,7 +19,7 @@ import java.util.Map;
  * Time: 10:38 AM
  * To change this template use File | Settings | File Templates.
  */
-public class SubmitJob extends HttpServlet {
+public class SubmitJob extends BaseServlet {
 
     private static final String SCRIPT_FILENAME = "scriptFilename";
     private static final String HADOOP_TASK_URL = "hadoopTaskUrl";
@@ -46,7 +45,7 @@ public class SubmitJob extends HttpServlet {
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(true);
-        String employeeId = (String) session.getAttribute(ShsContext.EMPLOYEE_ID);
+        String employeeId = ((LoginPass) session.getAttribute(ShsContext.LOGIN_PASS)).getUsername();
 
         Map<String, String> jsonKeyValMap = new HashMap<String, String>();
         String resourceFile = ShsContext.getStorageDir(employeeId) + request.getParameter(ShsContext.JAR_FILENAME);
@@ -56,7 +55,7 @@ public class SubmitJob extends HttpServlet {
             additionalParameters = "";
         }
         String command = scriptFilename + " " + resourceFile + " " + className.replace(".class", "") + " " + additionalParameters;
-System.out.println("command=\n"+command);
+System.out.println("command=\n" + command);
         Process process = Runtime.getRuntime().exec(command);
 
         String line = null;
@@ -75,7 +74,7 @@ System.out.println("command=\n"+command);
                 break;
             }
         }
-        if(jobId != null) {
+        if (jobId != null) {
             jsonKeyValMap.put("jobid", jobId);
         } else {
             jsonKeyValMap.put("error_msg", firstLine.replace("\"", "'"));

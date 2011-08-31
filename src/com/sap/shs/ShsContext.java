@@ -1,4 +1,5 @@
 package com.sap.shs;
+
 import com.sap.hadoop.conf.ConfigurationManager;
 import com.sap.hadoop.conf.IFile;
 import com.sap.hadoop.conf.IFileSystem;
@@ -12,6 +13,9 @@ import org.apache.hadoop.mapred.RunningJob;
 import javax.servlet.http.Cookie;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -33,9 +37,10 @@ import java.util.zip.ZipFile;
 public class ShsContext {
     public static final String EMPLOYEE_ID_REGEX = "I\\d{6}";
 
-    public static final String EMPLOYEE_ID = "employeeId";
-    public static final String PASSWORD = "password";
-    public static final String CONFIGURATION_MANAGER = "cm";
+    public static final String LOGIN_PASS = "Leopard";
+    public static final String EMPLOYEE_ID = "UralFieldMouse";
+    public static final String MD_PASSWORD = "ProboscisMonkey";
+    public static final String PASSWORD = "PussyCat";
     public static final String JAR_FILENAME = "jfn";
     public static final String CLASS_NAME = "className";
     public static final String ADDITIONAL_PARAMETERS = "addP";
@@ -50,6 +55,10 @@ public class ShsContext {
     public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
 
     public static String BASE_STORAGE_DIRECTORY;
+
+    public static String LOGIN_JSP;
+
+    public static String SECRET_KEY;
 
     private ShsContext() {
     }
@@ -102,7 +111,7 @@ public class ShsContext {
         IFileSystem fs = cm.getFileSystem();
         IFile[] files = fs.listFiles(folder);
         List<String> fileList = new ArrayList<String>();
-        for (IFile file: files) {
+        for (IFile file : files) {
             fileList.add(file.getName());
         }
         return fileList.toArray(new String[fileList.size()]);
@@ -164,6 +173,10 @@ public class ShsContext {
     }
 
     public static String getPersonHdfsFolder(String employeeId) {
+        if (!HDFS_PERSONAL_FOLDERS.containsKey(employeeId)) {
+            String hdfsPersonalFolder = HDFS_PERSON_FOLDER_BASE + employeeId + "/";
+            HDFS_PERSONAL_FOLDERS.put(employeeId, hdfsPersonalFolder);
+        }
         return HDFS_PERSONAL_FOLDERS.get(employeeId);
     }
 
@@ -187,7 +200,7 @@ public class ShsContext {
     public static String getJsonString(Map<String, String> map) {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
-        for (Map.Entry<String, String> entry: map.entrySet()) {
+        for (Map.Entry<String, String> entry : map.entrySet()) {
             sb.append("\"").append(entry.getKey()).append("\":\"").append(entry.getValue()).append("\",");
         }
 
@@ -198,16 +211,16 @@ public class ShsContext {
         return sb.toString();
     }
 
-    public static Map<String, String> getStatusMap(String jobStatusFilename) throws IOException  {
+    public static Map<String, String> getStatusMap(String jobStatusFilename) throws IOException {
         File jobStatusFile = new File(jobStatusFilename);
         List<String> lines = FileUtils.readLines(jobStatusFile);
         Map<String, String> statusMap = new LinkedHashMap<String, String>();
-        for (String line: lines) {
+        for (String line : lines) {
             int firstSpaceIdx = line.indexOf(" ");
             String name = line.substring(0, firstSpaceIdx);
             line = line.substring(firstSpaceIdx + 1);
             String[] tokens = line.split(" ");
-            for (String token: tokens) {
+            for (String token : tokens) {
                 if (name.equals("Job") && !token.equals(".")) {
                     String[] keyValue = token.split("=");
                     if (keyValue.length == 2) {
@@ -231,7 +244,99 @@ public class ShsContext {
         return rj;
     }
 
-    public static void main(String[] arg) throws Exception {
-        getStatusMap("c:\\temp\\hadoop01_1304012677051_job_201104281044_0005_lroot_sort1");
+    private static LoginPass getRequestLoginPass(Map<String, String[]> requestParaMap)
+            throws NoSuchAlgorithmException {
+        LoginPass loginPass = new LoginPass();
+
+        loginPass.setLoadFromRequest(true);
+
+        String username = requestParaMap.get(EMPLOYEE_ID) != null ? requestParaMap.get(EMPLOYEE_ID)[0] : null;
+        String password = requestParaMap.get(PASSWORD) != null ? requestParaMap.get(PASSWORD)[0] : null;
+        String realPassword = findPassword(username);
+        if (!StringUtils.isEmpty(password) && password.equals(realPassword)) {
+            loginPass.setUsername(username);
+            loginPass.setPassword(password);
+            String mdPassword = getDigestedString(realPassword);
+            loginPass.setMessageDigestedPassword(mdPassword);
+        }
+        loginPass.validate();
+        return loginPass;
+    }
+
+    private static LoginPass getCookieLoginPassFrom(Cookie[] cookies, ConfigurationManager cm)
+            throws NoSuchAlgorithmException {
+        LoginPass loginPass = new LoginPass();
+
+        loginPass.setLoadFromCookie(true);
+
+        Cookie usernameCookie = getCookie(cookies, ShsContext.EMPLOYEE_ID);
+        Cookie mdPasswordCookie = getCookie(cookies, ShsContext.MD_PASSWORD);
+
+        String username = usernameCookie != null ? usernameCookie.getValue() : null;
+        String mdPassword = mdPasswordCookie != null ? mdPasswordCookie.getValue() : null;
+        String realPassword = findPassword(username);
+        String mdRealPassword = realPassword != null ? getDigestedString(realPassword) : null;
+
+        if (!StringUtils.isEmpty(mdPassword) && mdPassword.equals(mdRealPassword)) {
+            loginPass.setUsername(username);
+            loginPass.setPassword(realPassword);
+            loginPass.setMessageDigestedPassword(mdPassword);
+        }
+        loginPass.validate();
+        return loginPass;
+    }
+
+    public static LoginPass getLoginPass(Map<String, String[]> requestParaMap,
+                                         Cookie[] cookies,
+                                         ConfigurationManager cm) throws Exception {
+        LoginPass loginPass = getRequestLoginPass(requestParaMap);
+        if (!loginPass.isValidPass()) {
+            loginPass = getCookieLoginPassFrom(cookies, cm);
+        }
+        return loginPass;
+    }
+
+    //TODO
+    private static String findPassword(String username) {
+        if (username == null || username.length() == 0) {
+            return null;
+        }
+        return "hadoopsap";
+    }
+
+    public static Cookie[] getLoginCookies(LoginPass loginPass) {
+        if (StringUtils.isEmpty(loginPass.getUsername()) ||
+                StringUtils.isEmpty(loginPass.getMessageDigestedPassword())) {
+            return new Cookie[0];
+        }
+
+        Cookie usernameCookie = new Cookie(EMPLOYEE_ID, loginPass.getUsername());
+        Cookie enPwdCookie = new Cookie(MD_PASSWORD, loginPass.getMessageDigestedPassword());
+        usernameCookie.setMaxAge(-1);
+        enPwdCookie.setMaxAge(-1);
+        usernameCookie.setPath("/shs");
+        enPwdCookie.setPath("/shs");
+        return new Cookie[]{usernameCookie, enPwdCookie};
+    }
+
+    public static String getDigestedString(String pass) throws NoSuchAlgorithmException {
+		MessageDigest m = MessageDigest.getInstance("MD5");
+		byte[] data = pass.getBytes();
+		m.update(data,0,data.length);
+		BigInteger i = new BigInteger(1,m.digest());
+		return String.format("%1$032X", i);
+	}
+
+    static Cookie getCookie(Cookie[] cookies, String cookieName) {
+        if (cookies == null || cookies.length == 0) {
+            return null;
+        } else {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals(cookieName)) {
+                    return cookie;
+                }
+            }
+        }
+        return null;
     }
 }

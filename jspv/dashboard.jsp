@@ -1,4 +1,5 @@
 <%@ page import="com.sap.shs.ShsContext" %>
+<%@ page import="com.sap.shs.LoginPass" %>
 <%@ page import="com.sap.hadoop.conf.ConfigurationManager" %>
 <%
     // CSS test
@@ -6,11 +7,10 @@
     if (theme == null || theme.length() == 0) {
         theme = "sap";
     }
-    String employeeId = (String) session.getAttribute(ShsContext.EMPLOYEE_ID);
+    LoginPass loginPass = (LoginPass)session.getAttribute(ShsContext.LOGIN_PASS);
+    String employeeId = loginPass.getUsername();
     String hdfsPersonFolder = ShsContext.getPersonHdfsFolder(employeeId);
-    String[] hdfsPersonalFiles =
-            ShsContext.listHdfsFolder(hdfsPersonFolder,
-                                      (ConfigurationManager)session.getAttribute(ShsContext.CONFIGURATION_MANAGER));
+    String[] hdfsPersonalFiles = ShsContext.listHdfsFolder(hdfsPersonFolder, loginPass.getConfigurationManager());
     int fileCount = 0;
     if (hdfsPersonalFiles != null && hdfsPersonalFiles.length > 0) {
         fileCount = hdfsPersonalFiles.length;
@@ -19,6 +19,7 @@
 <html>
 <head>
     <script language="javascript" src="../resources/js/jquery.js"></script>
+    <script language="javascript" src="../resources/js/common.js"></script>
     <script language="javascript" src="../resources/js/jquery-ui.custom.js"></script>
     <link rel="stylesheet" href="../resources/css/<%=theme%>/jquery-ui-custom.css" type="text/css">
     <link rel="stylesheet" href="../resources/css/common.css" type="text/css"/>
@@ -36,7 +37,7 @@
             <table>
                 <tr>
                     <td>
-                        <form id="file_upload" action="/shs/uuu" method="POST" enctype="multipart/form-data">
+                        <form id="file_upload" action="/shs/js/uuu" method="POST" enctype="multipart/form-data">
                             <input type="file" name="file" multiple>
                             <input type="hidden" id="nowFolder" name="nowFolder" value="<%=hdfsPersonFolder%>">
                             <div class="js">Upload Input Files</div>
@@ -68,7 +69,7 @@
             <table>
                 <tr>
                     <td>
-                        <form id="jar_upload" action="/shs/uuuJar" method="POST" enctype="multipart/form-data">
+                        <form id="jar_upload" action="/shs/js/uuuJar" method="POST" enctype="multipart/form-data">
                             <input type=hidden name="isJar" value="true">
                             <input type="file" name="file" accept="jar">
                             <div class="js">Upload a Jar File</div>
@@ -155,12 +156,15 @@
         $.ajaxSetup ({
             cache: false
         });
-        var listHdfsUrl = "/shs/hfl";
-        var parseJarUrl = "/shs/jjj";
-        var submitJobUrl = "/shs/sss";
-        var jobStatusUrl = "/shs/ggg";
-        var jobHistoryUrl = "/shs/hhh";
+        var listHdfsUrl = "/shs/js/hfl";
+        var parseJarUrl = "/shs/js/jjj";
+        var submitJobUrl = "/shs/js/sss";
+        var jobStatusUrl = "/shs/js/ggg";
+        var jobHistoryUrl = "/shs/js/hhh";
         var hdfsPersonFolder = "<%=hdfsPersonFolder%>";
+        var deleteFileUrl = "/shs/js/ddd";
+        var downloadFileUrl = "/shs/js/dwn";
+        var createFolderUrl = "/shs/js/mkdirs";
         var nowFolder = "<%=hdfsPersonFolder%>";
 
         /*global $ */

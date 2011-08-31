@@ -3,18 +3,14 @@ package com.sap.shs;
 import com.sap.hadoop.conf.ConfigurationManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapred.JobStatus;
 import org.apache.hadoop.mapred.RunningJob;
-import org.apache.hadoop.mapreduce.JobContext;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -30,7 +26,7 @@ import java.util.Map;
  * Time: 3:20 PM
  * To change this template use File | Settings | File Templates.
  */
-public class GetJobStatus extends HttpServlet {
+public class GetJobStatus extends BaseServlet {
     private static final NumberFormat PERCENTAGE_FORMAT = NumberFormat.getPercentInstance();
 
     private String hadoopLogDirectory;
@@ -49,10 +45,10 @@ public class GetJobStatus extends HttpServlet {
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String jobIdString = request.getParameter("jobid");
         HttpSession session = request.getSession(true);
-        String employeeId = (String) session.getAttribute(ShsContext.EMPLOYEE_ID);
-        ConfigurationManager configManager =
-                (ConfigurationManager) session.getAttribute(ShsContext.CONFIGURATION_MANAGER);
-        RunningJob runningJob = ShsContext.getRunningJob(jobIdString, configManager);
+        String employeeId = ((LoginPass) session.getAttribute(ShsContext.LOGIN_PASS)).getUsername();
+        ConfigurationManager configurationManager =
+                ((LoginPass) session.getAttribute(ShsContext.LOGIN_PASS)).getConfigurationManager();
+        RunningJob runningJob = ShsContext.getRunningJob(jobIdString, configurationManager);
         Map<String, String> jsonKeyValMap = null;
         if (runningJob != null) {
             jsonKeyValMap = getJsonMap(jobIdString, runningJob);
@@ -118,8 +114,8 @@ public class GetJobStatus extends HttpServlet {
             jsonKeyValMap.put("finish_time", ShsContext.DATE_FORMAT.format(new Date(finishTimeMs)));
         }
         if (submitTimeMs > 0 && finishTimeMs > 0) {
-            long durationSec = (durationMs/1000);
-            String durationString = String.format("%d:%02d:%02d", durationSec/3600, (durationSec%3600)/60, (durationSec%60));
+            long durationSec = (durationMs / 1000);
+            String durationString = String.format("%d:%02d:%02d", durationSec / 3600, (durationSec % 3600) / 60, (durationSec % 60));
             jsonKeyValMap.put("duration", durationString);
         }
         jsonKeyValMap.put("finished_maps", statusMap.get("finished_maps"));
@@ -141,8 +137,6 @@ public class GetJobStatus extends HttpServlet {
         Map<String, String> jsonKeyValMap = new HashMap<String, String>();
         jsonKeyValMap.put("jobid", jobIdString);
         jsonKeyValMap.put("tracking_url", runningJob.getTrackingURL());
-System.out.println("runningJob="+runningJob);
-System.out.println("runningJob.isComplete()="+runningJob.isComplete());
         jsonKeyValMap.put("is_completed", String.valueOf(runningJob.isComplete()));
         jsonKeyValMap.put("jobname", runningJob.getJobName());
 
@@ -175,14 +169,11 @@ System.out.println("runningJob.isComplete()="+runningJob.isComplete());
         // Look at the Hadoop log folder
         String hadoopConf = hadoopLogDirectory + jobConfFilename;
         File hadoopConfFile = new File(hadoopConf);
-System.out.println("hadoopConfFile="+hadoopConfFile+", exist?"+ hadoopConfFile.exists());
-System.out.println("jobConfFile="+jobConfFile +", exist?"+jobConfFile.exists());
         if (hadoopConfFile.exists()) {
             if (!jobConfFile.exists() ||
                     hadoopConfFile.length() != jobConfFile.length() ||
                     hadoopConfFile.lastModified() != jobConfFile.lastModified()) {
                 FileUtils.copyFileToDirectory(hadoopConfFile, new File(jobFolder));
-System.out.println("Copying is done, "+jobConfFile+" exist? "+jobConfFile.exists());
             }
         }
     }

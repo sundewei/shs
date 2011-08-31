@@ -1,7 +1,6 @@
 package com.sap.shs;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -16,11 +15,11 @@ import java.util.List;
  * Time: 2:57 PM
  * To change this template use File | Settings | File Templates.
  */
-public class ListJarClass extends HttpServlet {
+public class ListJarClass extends BaseServlet {
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(true);
-        String employeeId = (String) session.getAttribute(ShsContext.EMPLOYEE_ID);
+        String employeeId = ((LoginPass) session.getAttribute(ShsContext.LOGIN_PASS)).getUsername();
 
         String storageDir = ShsContext.getStorageDir(employeeId);
 
@@ -58,7 +57,7 @@ public class ListJarClass extends HttpServlet {
     public static void main(String[] arg) throws Exception {
         ClassResourceBean bean = ShsContext.getClassResourceBean("C:\\projects\\sadoopClient\\dist\\sap_hadoop_example.jar");
         List<String> list = bean.getResourceEntries();
-        for (String ent: list) {
+        for (String ent : list) {
             System.out.println(ent);
         }
     }

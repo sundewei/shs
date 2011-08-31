@@ -1,7 +1,5 @@
 package com.sap.shs;
 
-import com.sap.hadoop.conf.ConfigurationManager;
-import com.sap.hadoop.conf.IFileSystem;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -11,7 +9,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -24,7 +21,6 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.FileNameMap;
 import java.net.URLConnection;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,7 +30,7 @@ import java.util.List;
  * Time: 2:47 PM
  * To change this template use File | Settings | File Templates.
  */
-public class UploadJarFile extends HttpServlet {
+public class UploadJarFile extends BaseServlet {
 
     private static final String BASE_STORAGE_DIRECTORY = "baseStorageDirectory";
 
@@ -61,7 +57,7 @@ public class UploadJarFile extends HttpServlet {
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(true);
-        String employeeId = (String) session.getAttribute(ShsContext.EMPLOYEE_ID);
+        String employeeId = ((LoginPass) session.getAttribute(ShsContext.LOGIN_PASS)).getUsername();
 
         String storageDir = ShsContext.getStorageDir(employeeId);
         try {

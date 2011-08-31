@@ -20,6 +20,12 @@ $("#loginImgButton").click(
     }
 );
 
+$("#password").keyup(function(event){
+  if(event.keyCode == 13){
+    submitForm();
+  }
+});
+
 
 //document.forms.loginForm.username.value = "I123456";
 //document.forms.loginForm.password.value = "hadoopsap";

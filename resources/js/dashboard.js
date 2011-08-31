@@ -204,7 +204,7 @@ function getHdfsTableContent(jsonObj, folder, showFolderUp) {
         } else {
             var displayFilename = fileName.substring(fileName.indexOf(folder));
             var shortenName = getShortenName(displayFilename, 65);
-            var hpLink = "/shs/dwn?hdfsFilename=" + escape(displayFilename);
+            var hpLink = downloadFileUrl + "?hdfsFilename=" + escape(displayFilename);
             var icon = "/shs/resources/gfx/document.png";
             if (isDir == '0') {
                 icon = "/shs/resources/gfx/folder.jpg";
@@ -262,15 +262,15 @@ function getCurrentFolderHtml() {
 function createDirectory() {
     var newFolderName = prompt("Please enter the new directory name: ");
     // Only letters and underscore
-    var folderNameRegExp = "[a-zA-Z0-9_]+";
-    var regExp = new RegExp(folderNameRegExp);
-    var match = regExp.exec(newFolderName);
-    if (match == null || !newFolderName || newFolderName.length == 0 || match.length != newFolderName.length) {
+    var folderNameRegExp = "^\\w+$";
+    var regExp = new RegExp(folderNameRegExp, 'g');
+    //alert("newFolderName = -->"+newFolderName + "<--, -->regExp.test(newFolderName):"+regExp.test(newFolderName));
+    if (!regExp.test(newFolderName)) {
         alert("New directory name is not valid, only alphanumerical and underscore characters are acceptable (No space character, too)!");
         return;
     }
 
-    $.post("/shs/mkdirs", {"hdfsFolder": nowFolder, "folderName": newFolderName},
+    $.post(createFolderUrl, {"hdfsFolder": nowFolder, "folderName": newFolderName},
             function(){
                 refreshFileBrowser();
             }, "text");
@@ -322,7 +322,7 @@ function refreshFileBrowser() {
 
 function deleteFile(filename) {
     if(confirm("Delete " + hdfsPersonFolder + filename + "?")) {
-        $.post("/shs/ddd", {"hdfsFolder": nowFolder, "filenameToDelete": filename, "action": "delete"},
+        $.post(deleteFileUrl, {"hdfsFolder": nowFolder, "filenameToDelete": filename, "action": "delete"},
             function(){
                 refreshFileBrowser();
             }, "text");

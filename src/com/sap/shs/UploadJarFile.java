@@ -12,13 +12,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.FileNameMap;
 import java.net.URLConnection;
 import java.util.List;
@@ -32,27 +26,22 @@ import java.util.List;
  */
 public class UploadJarFile extends BaseServlet {
 
-    private static final String BASE_STORAGE_DIRECTORY = "baseStorageDirectory";
-
-    private String baseStorageDirectory = null;
-
     private FileNameMap fileNameMap = null;
 
-    private String jsonStringFormat = "{\"name\":\"%s\",\"type\":\"%s\",\"size\":\"%d\"}";
+    private static final String jsonStringFormat = "{\"name\":\"%s\",\"type\":\"%s\",\"size\":\"%d\"}";
 
     public void init() {
         fileNameMap = URLConnection.getFileNameMap();
-        baseStorageDirectory = getInitParameter(BASE_STORAGE_DIRECTORY);
-        if (StringUtils.isEmpty(baseStorageDirectory)) {
+        ShsContext.BASE_STORAGE_DIRECTORY = getInitParameter("baseStorageDirectory");
+        if (StringUtils.isEmpty(ShsContext.BASE_STORAGE_DIRECTORY)) {
             throw new RuntimeException("'baseStorageDirectory' was not defined in the web.xml for UploadFile servlet");
         }
-        File initStorageDirFile = new File(baseStorageDirectory);
+        File initStorageDirFile = new File(ShsContext.BASE_STORAGE_DIRECTORY);
         if (!initStorageDirFile.exists()) {
             if (!initStorageDirFile.mkdirs()) {
-                throw new RuntimeException("Unable to create baseStorageDirectory: " + baseStorageDirectory);
+                throw new RuntimeException("Unable to create baseStorageDirectory: " + ShsContext.BASE_STORAGE_DIRECTORY);
             }
         }
-        ShsContext.setBaseStorageDirectory(baseStorageDirectory);
     }
 
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

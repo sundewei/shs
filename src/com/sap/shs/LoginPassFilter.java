@@ -1,19 +1,12 @@
 package com.sap.shs;
 
-import com.sap.hadoop.conf.ConfigurationManager;
 import org.apache.commons.lang.StringUtils;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import javax.servlet.*;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.Enumeration;
 import java.util.Map;
 
 /**
@@ -42,7 +35,7 @@ public class LoginPassFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) servletRequest;
         HttpServletResponse res = (HttpServletResponse) servletResponse;
         HttpSession session = req.getSession();
-        LoginPass loginPass = (LoginPass)session.getAttribute(ShsContext.LOGIN_PASS);
+        LoginPass loginPass = (LoginPass) session.getAttribute(ShsContext.LOGIN_PASS);
         // When LoginPass is not in the session, try to build one from available information in request
         if (loginPass == null) {
             Map<String, String[]> paramMap = req.getParameterMap();
@@ -58,13 +51,13 @@ public class LoginPassFilter implements Filter {
 
             if (!loginPass.isLoadFromCookie()) {
                 Cookie[] neededCookies = ShsContext.getLoginCookies(loginPass);
-                for (Cookie cookie: neededCookies) {
+                for (Cookie cookie : neededCookies) {
                     res.addCookie(cookie);
                 }
             }
         }
 
-        if (!loginPass.isValidPass()){
+        if (!loginPass.isValidPass()) {
             res.sendRedirect(ShsContext.LOGIN_JSP);
             return;
         }

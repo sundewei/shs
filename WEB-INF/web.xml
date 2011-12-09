@@ -24,8 +24,6 @@
             <param-name>secretKey</param-name>
             <param-value>superStrongSecretKey</param-value>
         </init-param>
-
-
     </filter>
 
     <filter-mapping>
@@ -66,13 +64,11 @@
     <servlet>
         <servlet-name>GetJobStatus</servlet-name>
         <servlet-class>com.sap.shs.GetJobStatus</servlet-class>
-        <load-on-startup>1</load-on-startup>
         <init-param>
             <param-name>hadoopLogDirectory</param-name>
-            <!--<param-value>C:\\projects\\apache-tomcat-7.0.12\\temp\\</param-value>-->
             <param-value>/usr/local/hadoop/logs/</param-value>
         </init-param>
-
+        <load-on-startup>1</load-on-startup>
     </servlet>
 
     <servlet-mapping>
@@ -150,12 +146,11 @@
     <servlet>
         <servlet-name>UploadJarFile</servlet-name>
         <servlet-class>com.sap.shs.UploadJarFile</servlet-class>
-        <load-on-startup>1</load-on-startup>
         <init-param>
             <param-name>baseStorageDirectory</param-name>
-            <!--<param-value>C:\\projects\\apache-tomcat-7.0.12\\temp\\</param-value>-->
             <param-value>/usr/local/tomcat/temp/</param-value>
         </init-param>
+        <load-on-startup>1</load-on-startup>
     </servlet>
 
     <servlet-mapping>
@@ -175,11 +170,27 @@
             <param-name>hadoopTaskUrl</param-name>
             <param-value>http://dewei0:50030/jobtracker.jsp</param-value>
         </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet>
+        <servlet-name>SubmitPlugin</servlet-name>
+        <servlet-class>com.sap.shs.SubmitPlugin</servlet-class>
+        <init-param>
+            <param-name>pluginJar</param-name>
+            <param-value>/usr/local/tomcat/webapps/shs/resources/binary/sap_hadoop_example.jar</param-value>
+        </init-param>
+
     </servlet>
 
     <servlet-mapping>
         <servlet-name>SubmitJob</servlet-name>
         <url-pattern>/js/sss</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>SubmitPlugin</servlet-name>
+        <url-pattern>/js/runPlugin</url-pattern>
     </servlet-mapping>
 
     <error-page>

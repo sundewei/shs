@@ -100,27 +100,11 @@ img.screen {
     This code lab requires you have basic Java knowledge.
     <ul class="bulletlist">
         <li> 1. Install JDK 1.6 or higher <a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html" target="_new">here</a></li>
-        <li> 2. Include Hadoop libraries in your CLASSPATH (download from <a href="hadoop-core-0.20.2-cdh3u0.jar">here</a>)</li>
-        <li> 3. Include SAP Hadoop API in your CLASSPATH (download from <a href="sap_hadoop.jar">here</a>)</li>
-        <li> 4. Include 5 Hive-related jar files in your CLASSPATH (download <a href="hive-exec-0.6.0.jar">hive-exec-0.6.0</a>, <a href="hive-jdbc-0.6.0.jar">hive-jdbc-0.6.0</a>, <a href="hive-metastore-0.6.0.jar">hive-metastore-0.6.0</a>, <a href="hive-service-0.6.0.jar">hive-service-0.6.0</a>, <a href="libfb303.jar">libfb303</a>)</li>
+        <li> 2. Include Hadoop libraries in your CLASSPATH (download from <a href="hadoop-core-0.20.2-cdh3u2.jar">here</a>)</li>
+        <li> 3. Include SAP Hadoop API in your CLASSPATH (download from <a href="../resources/binary/sap_hadoop.jar">here</a>)</li>
+        <li> 4. Include 5 Hive-related jar files in your CLASSPATH (download <a href="hive-exec-0.7.1-cdh3u2.jar">hive-exec-0.7.1-cdh3u2</a>, <a href="hive-jdbc-0.7.1-cdh3u2.jar">hive-jdbc-0.7.1-cdh3u2</a>, <a href="hive-metastore-0.7.1-cdh3u2.jar">hive-metastore-0.7.1-cdh3u2</a>, <a href="hive-service-0.7.1-cdh3u2.jar">hive-service-0.7.1-cdh3u2</a>, <a href="libfb303.jar">libfb303</a>)</li>
         <li> 5. Include <a href="log4j-1.2.15.jar">Log4J</a>, <a href="commons-logging-1.0.4.jar">Apache Common Logging API</a> and <a href="commons-io-2.0.1.jar">Apache Common IO API</a> in your CLASSPATH</li>
         <li> 6. (Optional) Request access to SAP Hadoop cluster by sending your employee ID to <a href="mailto:dewei.sun@sap.com">me</a> or you can just use the test account in the code snippets</li>
-        <li> 7. Copy and paste the following hostname mappings to your hosts file: <font color="red"> c:\Windows\System32\drivers\etc\hosts</font>
-            <pre>
-                <code>
-10.48.171.223		hadoop01
-10.48.171.224		hadoop02
-10.48.171.225		hadoop03
-10.48.171.226		hadoop04
-10.48.171.227		hadoop05
-10.48.171.228		hadoop06
-10.48.171.229		hadoop07
-10.48.171.230		hadoop08
-10.48.171.231		hadoop09
-10.48.171.216		hadoop10
-                </code>
-            </pre>
-        </li>
     </ul>
     <br />
     Please contact <a href="mailto:dewei.sun@sap.com">Dewei Sun</a>, if there is any error opening above links.
@@ -131,12 +115,12 @@ img.screen {
 <h1>Record Archiving</h1>
 
 <p>
-    As mentioned before, the master database needs to archive data onto a reliable file system.
+    hive-exec-0.6.0As mentioned before, the master database needs to archive data onto a reliable file system.
     HDFS here serves as a distributed file system of unlimited disk spaces and DBAs can export the "table dump" in the format they prefer (CSV, TSV, just to name a couple).<br /><br/>
 
     1. Export the table you wish to archive in text format. (e.g. testTable.tsv) <br />
     2. Upload the text file to HDFS: <br />
-    &nbsp;&nbsp;&nbsp;&nbsp;2-1. Upload via FTP to your personal HDFS directory. (You can connect to the FTP server using a FTP client:  ftp://I123456:hadoopsap@hadoop01/user/I123456/)<br />
+    &nbsp;&nbsp;&nbsp;&nbsp;2-1. Upload via FTP to your personal HDFS directory. (You can connect to the FTP server using a FTP client:  ftp://I123456:hadoopsap@llnpal055/user/I123456/)<br />
     &nbsp;&nbsp;&nbsp;&nbsp;2-2. Use I/O API to upload the table dump to your personal HDFS directory:<br /><br />
     <pre>
         <code>

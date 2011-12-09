@@ -6,10 +6,11 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,25 +21,14 @@ import java.util.Map;
  * To change this template use File | Settings | File Templates.
  */
 public class SubmitJob extends BaseServlet {
-
-    private static final String SCRIPT_FILENAME = "scriptFilename";
-    private static final String HADOOP_TASK_URL = "hadoopTaskUrl";
-
-    private String scriptFilename;
-    private String hadoopTaskUrl;
-
-    // Since hadoop 0.21.0 is not compatible with Hive 0.7 yet, we ended up having to get the job id by checking the
-    // output from the submit_job.hs script
-    private static final String JOB_ID_KEYWORD = "mapred.JobClient: Running job: ";
-
     public void init() {
-        scriptFilename = getInitParameter(SCRIPT_FILENAME);
-        if (StringUtils.isEmpty(scriptFilename)) {
+        ShsContext.SCRIPT_FILENAME = getInitParameter("scriptFilename");
+        if (StringUtils.isEmpty(ShsContext.SCRIPT_FILENAME)) {
             throw new RuntimeException("'scriptFilename' was not defined in the web.xml for SubmitJob servlet");
         }
 
-        hadoopTaskUrl = getInitParameter(HADOOP_TASK_URL);
-        if (StringUtils.isEmpty(hadoopTaskUrl)) {
+        ShsContext.HADOOP_TASK_URL = getInitParameter("hadoopTaskUrl");
+        if (StringUtils.isEmpty(ShsContext.HADOOP_TASK_URL)) {
             throw new RuntimeException("'hadoopTaskUrl' was not defined in the web.xml for SubmitJob servlet");
         }
     }
@@ -49,38 +39,35 @@ public class SubmitJob extends BaseServlet {
 
         Map<String, String> jsonKeyValMap = new HashMap<String, String>();
         String resourceFile = ShsContext.getStorageDir(employeeId) + request.getParameter(ShsContext.JAR_FILENAME);
+
         String className = request.getParameter(ShsContext.CLASS_NAME);
+
         String additionalParameters = request.getParameter(ShsContext.ADDITIONAL_PARAMETERS);
         if (StringUtils.isEmpty(additionalParameters)) {
             additionalParameters = "";
         }
-        String command = scriptFilename + " " + resourceFile + " " + className.replace(".class", "") + " " + additionalParameters;
-System.out.println("command=\n" + command);
-        Process process = Runtime.getRuntime().exec(command);
+        String command = ShsContext.getCommand(ShsContext.SCRIPT_FILENAME, resourceFile, className, additionalParameters);
 
-        String line = null;
+System.out.println("command=\n" + command);
+        Process process = ShsContext.execute(command);
+        InputStream in = process.getInputStream();
+        InputStream error = process.getErrorStream();
         String jobId = null;
-        // get its output (your input) stream
-        DataInputStream errorIn = new DataInputStream(process.getErrorStream());
-        StringBuilder sb = new StringBuilder();
-        String firstLine = null;
-        while ((line = errorIn.readLine()) != null) {
-            if (firstLine == null) {
-                firstLine = line;
-            }
-            sb.append(line).append("\n");
-            if (line.indexOf(JOB_ID_KEYWORD) > 0) {
-                jobId = line.substring(line.indexOf(JOB_ID_KEYWORD) + JOB_ID_KEYWORD.length());
-                break;
-            }
+        if (in.available() > 0) {
+            System.out.println("Trying to get jobId from InputStream...");
+            jobId = ShsContext.getJobId(in);
+        } else {
+            System.out.println("Trying to get jobId from ErrorInputStream...");
+            jobId = ShsContext.getJobId(error);
         }
+
         if (jobId != null) {
             jsonKeyValMap.put("jobid", jobId);
         } else {
-            jsonKeyValMap.put("error_msg", firstLine.replace("\"", "'"));
+            jsonKeyValMap.put("error_msg", "Failed to submit the MapReduce task, please contact administrator for more details.");
         }
-        errorIn.close();
-
+        in.close();
+        error.close();
         PrintWriter out = response.getWriter();
         response.setContentType("application/json");
         out.write(ShsContext.getJsonString(jsonKeyValMap));

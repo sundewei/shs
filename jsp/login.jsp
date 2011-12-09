@@ -1,10 +1,22 @@
 <%@ page import="com.sap.shs.ShsContext" %>
+<%
+    if ("out".equalsIgnoreCase(request.getParameter("action"))) {
+        Cookie usernameCookie = new Cookie(ShsContext.EMPLOYEE_ID, "");
+        usernameCookie.setMaxAge( 0 );
+
+        Cookie mdPassword = new Cookie(ShsContext.MD_PASSWORD, "");
+        mdPassword.setMaxAge( 0 );
+
+        response.addCookie(usernameCookie);
+        response.addCookie(mdPassword);
+    }
+%>
 <html>
 <head>
     <script language="javascript" src="../resources/js/jquery.js"></script>
     <script language="javascript" src="../resources/js/common.js"></script>
-    <link id="css" rel="stylesheet" href="../resources/css/common.css" type="text/css">
-    <link id="css" rel="stylesheet" href="../resources/css/login.css" type="text/css">
+    <link rel="stylesheet" href="../resources/css/common.css" type="text/css">
+    <link rel="stylesheet" href="../resources/css/login.css" type="text/css">
 </head>
 <body>
     <form id="loginForm">

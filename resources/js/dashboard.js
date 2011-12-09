@@ -1,3 +1,44 @@
+function getProcedureSelection() {
+    var content = "<span class='text'>Procedure:</span> <select name='className' id='procedureFunction'>";
+    content += "<option value='com.sap.plugin.ApacheAccessLogParser'>ApacheAccessLogParser</option>";
+    content += "</select>";
+
+    content += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+    content += "<span class='text'>Log folder:</span> <input id='inputPath' type='text'>";
+    content += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+    content += "<span class='text'>Output folder:</span> <input id='outputPath' type='text'>";
+    content += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+    content += "<input type=button id='run_ApacheAccessLogParser' value='Run Procedure' onclick='javascript:runPlugin()'>";
+    return content;
+}
+
+function runPlugin() {
+    var inputPath = $("input#inputPath").val();
+    var outputPath = $("input#outputPath").val();
+    var className = $("select#procedureFunction").val();
+alert("className="+className);
+    if (inputPath == null || inputPath.length == 0) {
+        alert("Log folder can not be empty.");
+    }
+    if (inputPath == null || outputPath.length == 0) {
+        alert("Out folder can not be empty.");
+    }
+    if (inputPath == outputPath) {
+        alert("Log folder and output folder are the same.");
+    }
+
+    $.getJSON(submitPluginUrl, {"inputPath": inputPath, "outputPath" : outputPath, "className": className},
+        function(json) {
+            if(!json.succeed) {
+                alert(json.reason);
+            } else {
+                alert("json.succeed="+json.succeed);
+            }
+        }
+    );
+
+}
+
 function getJobHistoryContent(jsonObj) {
     var count = 0;
     var content = "";

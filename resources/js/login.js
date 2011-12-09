@@ -27,7 +27,7 @@ $("#password").keyup(function(event){
 });
 
 
-//document.forms.loginForm.username.value = "I123456";
-//document.forms.loginForm.password.value = "hadoopsap";
+document.forms.loginForm.username.value = "hadoop";
+document.forms.loginForm.password.value = "hadoop";
 //document.forms.loginForm.username.readOnly = true;
 //document.forms.loginForm.password.readOnly = true;

@@ -105,22 +105,6 @@ img.screen {
 
 <p>
     <ul class="bulletlist">
-        <li> Copy and paste the following hostname mappings to your hosts file: <font color="red"> c:\Windows\System32\drivers\etc\hosts</font>
-            <pre>
-                <code>
-10.48.171.223		hadoop01
-10.48.171.224		hadoop02
-10.48.171.225		hadoop03
-10.48.171.226		hadoop04
-10.48.171.227		hadoop05
-10.48.171.228		hadoop06
-10.48.171.229		hadoop07
-10.48.171.230		hadoop08
-10.48.171.231		hadoop09
-10.48.171.216		hadoop10
-                </code>
-            </pre>
-        </li>
         <li> The MapReduce code for this example is compressed as a JAR file and stored on the HDFS.<br/> Please download <a href="sap_hadoop_example.jar" target="_new">sap_hadoop_example.jar</a> to your local folder, for example: c:\hadoop_example\ </li>
         <li> Download one or more sample dated input log files (<a href="localhost_access_log.2011-08-01.txt" target="_new">2011-08-01.txt</a>, <a href="localhost_access_log.2011-08-02.txt" target="_new">2011-08-02.txt</a>, <a href="localhost_access_log.2011-08-03.txt" target="_new">2011-08-03.txt</a>, <a href="localhost_access_log.2011-08-04.txt" target="_new">2011-08-04.txt</a>) to your local folder, for example: c:\hadoop_example\ (You need at least one log file to run the example)</li>
         <li> (Optional) Request access to SAP Hadoop cluster by sending your employee ID to <a href="mailto:dewei.sun@sap.com">me</a> or you can just use the test account coded in the example source</li>
@@ -183,7 +167,7 @@ img.screen {
 
     <br /><br />
 
-    4. Go to Hadoop's <a href="http://hadoop01:50030/jobtracker.jsp" target="_new">Task Status</a> page and make sure you see your 2 jobs have completed (AccessLogParser and ProductTrend).
+    4. Go to Hadoop's <a href="http://llnpal055:50030/jobtracker.jsp" target="_new">Task Status</a> page and make sure you see your 2 jobs have completed (AccessLogParser and ProductTrend).
     <br /><br />
     There will be 2 jobs running once you have done Step 3, the first job will be displayed in Task Force but the second job is not shown by Task Force and can only be checked manually in via Hadoop Job Status page using the job id.
 
@@ -193,7 +177,7 @@ img.screen {
 
     <br /><br />
 
-    5. You can view the result of the log processing result, please fo to HDFS <a href="http://hadoop01:50070/dfshealth.jsp" target="_new">status page</a> and click on "Browse the filesystem" to preview/download the result file called "part-r-00000", for example: /user/I123456/parsed/trend/part-r-00000.
+    5. You can view the result of the log processing result, please fo to HDFS <a href="http://llnpal055:50070/dfshealth.jsp" target="_new">status page</a> and click on "Browse the filesystem" to preview/download the result file called "part-r-00000", for example: /user/I123456/parsed/trend/part-r-00000.
 
     <br /><br />
 

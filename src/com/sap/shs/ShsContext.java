@@ -11,18 +11,12 @@ import org.apache.hadoop.mapred.JobID;
 import org.apache.hadoop.mapred.RunningJob;
 
 import javax.servlet.http.Cookie;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipFile;
@@ -36,6 +30,9 @@ import java.util.zip.ZipFile;
  */
 public class ShsContext {
     public static final String EMPLOYEE_ID_REGEX = "I\\d{6}";
+
+    private static final String JOB_ID_KEYWORD = "mapred.JobClient: Running job: ";
+    private static final String JOB_EXCEPTION_KEYWORD = "Exception in thread";
 
     public static final String LOGIN_PASS = "Leopard";
     public static final String EMPLOYEE_ID = "UralFieldMouse";
@@ -60,11 +57,47 @@ public class ShsContext {
 
     public static String SECRET_KEY;
 
+    public static String SCRIPT_FILENAME;
+
+    public static String HADOOP_TASK_URL;
+
+    public static String PLUGIN_JAR;
+
     private ShsContext() {
     }
 
-    public static void setBaseStorageDirectory(String s) {
-        BASE_STORAGE_DIRECTORY = s;
+    public static Process execute(String command) throws IOException {
+        return Runtime.getRuntime().exec(command);
+    }
+
+    public static String getJobId(InputStream in) throws IOException {
+        BufferedReader r = new BufferedReader(new InputStreamReader(in));
+System.out.println("Setup the BufferedReader..., available length in the InputStream is: " + in.available());
+        String line;
+        String jobId = null;
+        while ((line = r.readLine()) != null) {
+System.out.println(line);
+            if (line.indexOf(JOB_ID_KEYWORD) > 0) {
+                jobId = line.substring(line.indexOf(JOB_ID_KEYWORD) + JOB_ID_KEYWORD.length());
+                break;
+            }
+            if (line.indexOf(JOB_EXCEPTION_KEYWORD) >= 0) {
+                break;
+            }
+        }
+        return jobId;
+    }
+
+    public static List<String> getLines(InputStream in) throws IOException {
+        BufferedReader r = new BufferedReader(new InputStreamReader(in));
+System.out.println("Setup the Error BufferedReader..., available length in the InputStream is: " + in.available());
+        String line = r.readLine();
+        List<String> lines = new ArrayList<String>();
+        while (line != null) {
+            lines.add(line);
+            line = r.readLine();
+        }
+        return lines;
     }
 
     public static String getStorageDir(String employeeId) throws IOException {
@@ -88,6 +121,13 @@ public class ShsContext {
         return INSTANCE;
     }
 
+    public static Properties getProperties(Map<String, String[]> map) {
+        Properties prop = new Properties();
+        for(Map.Entry<String, String[]> entry:  map.entrySet()) {
+            prop.setProperty(entry.getKey(), entry.getValue()[0]);
+        }
+        return prop;
+    }
 
     public static void throwIfEmptyInSession(String name, String value) throws IOException {
         if (StringUtils.isEmpty(value)) {
@@ -301,7 +341,7 @@ public class ShsContext {
         if (username == null || username.length() == 0) {
             return null;
         }
-        return "hadoopsap";
+        return "hadoop";
     }
 
     public static Cookie[] getLoginCookies(LoginPass loginPass) {
@@ -320,12 +360,12 @@ public class ShsContext {
     }
 
     public static String getDigestedString(String pass) throws NoSuchAlgorithmException {
-		MessageDigest m = MessageDigest.getInstance("MD5");
-		byte[] data = pass.getBytes();
-		m.update(data,0,data.length);
-		BigInteger i = new BigInteger(1,m.digest());
-		return String.format("%1$032X", i);
-	}
+        MessageDigest m = MessageDigest.getInstance("MD5");
+        byte[] data = pass.getBytes();
+        m.update(data, 0, data.length);
+        BigInteger i = new BigInteger(1, m.digest());
+        return String.format("%1$032X", i);
+    }
 
     static Cookie getCookie(Cookie[] cookies, String cookieName) {
         if (cookies == null || cookies.length == 0) {
@@ -338,5 +378,12 @@ public class ShsContext {
             }
         }
         return null;
+    }
+
+    protected static String getCommand(String scriptFilename,
+                                       String resourceFile,
+                                       String className,
+                                       String additionalParameters) {
+        return scriptFilename + " " + resourceFile + " " + className.replace(".class", "") + " " + additionalParameters;
     }
 }

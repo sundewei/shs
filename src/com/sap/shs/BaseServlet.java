@@ -1,7 +1,6 @@
 package com.sap.shs;
 
 import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpSession;
 
 /**
  * Created by IntelliJ IDEA.
@@ -11,4 +10,5 @@ import javax.servlet.http.HttpSession;
  * To change this template use File | Settings | File Templates.
  */
 public class BaseServlet extends HttpServlet {
+
 }

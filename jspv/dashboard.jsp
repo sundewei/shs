@@ -1,6 +1,5 @@
 <%@ page import="com.sap.shs.ShsContext" %>
 <%@ page import="com.sap.shs.LoginPass" %>
-<%@ page import="com.sap.hadoop.conf.ConfigurationManager" %>
 <%
     // CSS test
     String theme = request.getParameter("theme");
@@ -10,11 +9,6 @@
     LoginPass loginPass = (LoginPass)session.getAttribute(ShsContext.LOGIN_PASS);
     String employeeId = loginPass.getUsername();
     String hdfsPersonFolder = ShsContext.getPersonHdfsFolder(employeeId);
-    String[] hdfsPersonalFiles = ShsContext.listHdfsFolder(hdfsPersonFolder, loginPass.getConfigurationManager());
-    int fileCount = 0;
-    if (hdfsPersonalFiles != null && hdfsPersonalFiles.length > 0) {
-        fileCount = hdfsPersonalFiles.length;
-    }
 %>
 <html>
 <head>
@@ -32,6 +26,7 @@
             <li><a href="#tabs-1">HDFS Admin</a></li>
             <li><a href="#tabs-2">Submit a Task</a></li>
             <li><a href="#tabs-3">Task History</a></li>
+            <li><a href="#tabs-4">Procedures</a></li>
         </ul>
         <div id="tabs-1">
             <table>
@@ -44,7 +39,7 @@
                         </form>
                     </td>
                     <td align="right" width=400>
-                        <span class="rightText">Hi, <%=employeeId%>  |  <a href="/shs/jsp/login.jsp" title="logoff">Louout</a></span>
+                        <div id="logout" />
                     </td>
                 </tr>
                 <tr>
@@ -76,9 +71,7 @@
                         </form>
                     </td>
                     <td align="right" width=400>
-                        <div>
-                            <span class="rightText">Hi, <%=employeeId%>  |  <a href="/shs/jsp/login.jsp" title="logoff">Louout</a></span>
-                        </div>
+                        <div id="logout" />
                     </td>
                 </tr>
                 <tr>
@@ -121,9 +114,7 @@
                         <div class=info>Click on the task id to see the details</div>
                     </td>
                     <td align="right" width=648>
-                        <div>
-                            <span class="rightText">Hi, <%=employeeId%>  |  <a href="/shs/jsp/login.jsp" title="logoff">Louout</a></span>
-                        </div>
+                        <div id="logout" />
                     </td>
                 </tr>
                 <tr>
@@ -137,10 +128,37 @@
                     <td valign="top">
                         <fieldset>
                             <legend>Job Details</legend>
-                            <table id="jobDetail" class="status" width="500 px" height="300 px">
+                            <table id="jobDetail" class="status" width="500 px">
                                 <tr>
-                                    <td text-align="center">No job selected!</td>
+                                    <td>No job selected!</td>
                                 </tr>
+                            </table>
+                        </fieldset>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id="tabs-4">
+            <table>
+                <tr>
+                    <td>
+                        <div class=info>Select a predefined procedure.</div>
+                    </td>
+                    <td align="right" width=648>
+                        <div id="logout" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <span id="procedure" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <fieldset>
+                            <legend>Plugin Details</legend>
+                            <table id="procedureForm" class="status" width="500 px">
+                                <jsp:include page="ApacheAccessLogParser.jsp" flush="true" />
                             </table>
                         </fieldset>
                     </td>
@@ -166,9 +184,12 @@
         var downloadFileUrl = "/shs/js/dwn";
         var createFolderUrl = "/shs/js/mkdirs";
         var nowFolder = "<%=hdfsPersonFolder%>";
+        var submitPluginUrl = "/shs/js/runPlugin";
 
         /*global $ */
         $(function () {
+            $("div#logout").html('<span class="rightText">Hi, <%=employeeId%>  |  <a href="/shs/jsp/login.jsp" title="logoff">Logout</a></span>');
+            $("span#procedure").html(getProcedureSelection());
             $("#tabs").tabs();
             $("table#hdfsFiles").show("slow");
             $("#hdfs_status").addClass("fileBrowser").show("slow");
@@ -206,7 +227,6 @@
             $('#jar_upload').fileUploadUI({
                 onSend: function (event, files, index, xhr, handler) {
                     hideOldContent();
-                    //alert("files["+index+"].name="+files[index].name);
                     var dotIdx = files[index].name.lastIndexOf(".");
 
                     if (dotIdx >= 0) {
@@ -222,7 +242,6 @@
                 uploadTable: $('#jars'),
                 buildUploadRow: function (files, index) {
                     hideOldContent();
-                    //$("table#jarFile").html("<tr><td colspan=2 class='headline'>Steps</td></tr><tr><td class='field'>No jar file uploaded!</td><td class='field'>&nbsp;</td></tr>");
                     return $('<tr><td>' + files[index].name + '<\/td>' +
                             '<td class="file_upload_progress"><div><\/div><\/td>' +
                             '<td class="file_upload_cancel">' +
@@ -244,10 +263,6 @@
                                 var className = $("#classSelector option:selected").val();
                                 var uploadedJarFilename = $("#uploadedJarFilename").val();
                                 var extraParams = $("#extraParams").val();
-
-                                //alert('className='+className);
-                                //alert('uploadedJarFilename='+uploadedJarFilename);
-                                //alert('extraParams='+extraParams);
 
                                 if (className == '') {
                                     $("div#selectorError").show();

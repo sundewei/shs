@@ -1,7 +1,5 @@
 package com.sap.shs;
 
-import com.sap.hadoop.conf.ConfigurationManager;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -39,7 +37,7 @@ public class Login extends BaseServlet {
             session.setAttribute(ShsContext.LOGIN_PASS, loginPass);
 
             Cookie[] neededCookies = ShsContext.getLoginCookies(loginPass);
-            for (Cookie cookie: neededCookies) {
+            for (Cookie cookie : neededCookies) {
                 response.addCookie(cookie);
             }
             // Creating the local personal folder and set it in session

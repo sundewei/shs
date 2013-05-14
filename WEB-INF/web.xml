@@ -37,6 +37,95 @@
     </filter-mapping>
 
     <!-- Define Servlets -->
+    <!-- Restlet adapter -->
+   <servlet>
+      <servlet-name>RestletServlet</servlet-name>
+      <servlet-class>org.restlet.ext.servlet.ServerServlet</servlet-class>
+      <init-param>
+            <!-- Application class name -->
+            <param-name>org.restlet.application</param-name>
+            <param-value>com.sap.shield.Application</param-value>
+      </init-param>
+   </servlet>
+
+   <!-- Catch all requests -->
+   <servlet-mapping>
+      <servlet-name>RestletServlet</servlet-name>
+      <url-pattern>/rest/*</url-pattern>
+   </servlet-mapping>
+
+    ShieldSendSensorInfo
+
+    <servlet>
+        <servlet-name>ShieldSendSensorInfo</servlet-name>
+        <servlet-class>com.sap.shs.ShieldSendSensorInfo</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>ShieldSendSensorInfo</servlet-name>
+        <url-pattern>/js/sssssi</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ShieldSendSensor</servlet-name>
+        <servlet-class>com.sap.shs.ShieldSendSensor</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>ShieldSendSensor</servlet-name>
+        <url-pattern>/js/sssss</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ShieldQuery</servlet-name>
+        <servlet-class>com.sap.shs.ShieldQuery</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>ShieldQuery</servlet-name>
+        <url-pattern>/js/sq</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>WriteTextHdfsFile</servlet-name>
+        <servlet-class>com.sap.shs.WriteTextHdfsFile</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>WriteTextHdfsFile</servlet-name>
+        <url-pattern>/js/wthf</url-pattern>
+    </servlet-mapping>
+
+
+    <servlet>
+        <servlet-name>ShieldInfo</servlet-name>
+        <servlet-class>com.sap.shs.ShieldInfo</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>ShieldInfo</servlet-name>
+        <url-pattern>/js/si</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ShieldSend</servlet-name>
+        <servlet-class>com.sap.shs.ShieldSend</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>ShieldSend</servlet-name>
+        <url-pattern>/js/ss</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ShieldPostSender</servlet-name>
+        <servlet-class>com.sap.shs.ShieldHttpSender</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>ShieldPostSender</servlet-name>
+        <url-pattern>/js/sps</url-pattern>
+    </servlet-mapping>
 
     <servlet-mapping>
         <servlet-name>CreateFolder</servlet-name>
@@ -112,6 +201,12 @@
         <url-pattern>/js/hfl</url-pattern>
     </servlet-mapping>
 
+    <!-- For xs engine POC -->
+    <servlet-mapping>
+        <servlet-name>ListHdfsFolder</servlet-name>
+        <url-pattern>/xs/hfl</url-pattern>
+    </servlet-mapping>
+
     <servlet>
         <servlet-name>DeleteHdfsFile</servlet-name>
         <servlet-class>com.sap.shs.DeleteHdfsFile</servlet-class>
@@ -168,7 +263,26 @@
 
         <init-param>
             <param-name>hadoopTaskUrl</param-name>
-            <param-value>http://dewei0:50030/jobtracker.jsp</param-value>
+            <param-value>http://llnpal055:50030/jobtracker.jsp</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+
+    <servlet>
+        <servlet-name>SubmitMovieRecommenderJob</servlet-name>
+        <servlet-class>com.sap.shs.SubmitMovieRecommenderJob</servlet-class>
+        <init-param>
+            <param-name>scriptFilename</param-name>
+            <param-value>/usr/local/hadoop/bin/submit_recommender_job.sh</param-value>
+        </init-param>
+        <init-param>
+            <param-name>workingFolder</param-name>
+            <param-value>/user/hadoop/taskForceData/amazonMovieDemo/</param-value>
+        </init-param>
+        <init-param>
+            <param-name>hadoopTaskUrl</param-name>
+            <param-value>http://llnpal055:50030/jobtracker.jsp</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
@@ -183,9 +297,24 @@
 
     </servlet>
 
+    <servlet>
+        <servlet-name>LoadMovieHtml</servlet-name>
+        <servlet-class>com.sap.shs.demo.LoadMovieHtml</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>LoadMovieHtml</servlet-name>
+        <url-pattern>/js/movie</url-pattern>
+    </servlet-mapping>
+
     <servlet-mapping>
         <servlet-name>SubmitJob</servlet-name>
         <url-pattern>/js/sss</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>SubmitMovieRecommenderJob</servlet-name>
+        <url-pattern>/js/mr</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

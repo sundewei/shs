@@ -1,0 +1,136 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>SAP Hadoop 101</title>
+    <link href="css/codesite.pack.04102009.css" type="text/css" rel="stylesheet">
+    <link href="css/common.css" type="text/css" rel="stylesheet">
+    <script type="text/javascript" src="../resources/js/jquery.js"></script>
+    <script type="text/javascript" src="js/common.js"></script>
+</head>
+
+<body class="gc-documentation">
+
+<div id="gc-container">
+
+<!-- start gc-topnav -->
+<div id="gc-topnav">
+    <h1>SAP Hadoop 101 Prerequisites</h1>
+    <ul id="docs" class="gc-topnav-tabs">
+    </ul>
+</div>
+<!-- end gc-topnav -->
+
+<div class="g-section g-tpl-170">
+
+<div class="g-unit g-first" id="gc-toc">
+    <ul>
+        <li><h2>Quick Links</h2>
+            <ul>
+                <li>
+                    <a href="#Prerequisites" title="Prerequisites">Prerequisites</a>
+                </li>
+            </ul>
+        </li>
+    </ul>
+
+</div>
+
+<a name="gc-pagecontent-anchor"></a>
+
+<div class="g-unit" id="gc-pagecontent">
+
+<a name="Prerequisites"></a>
+
+<h1>Prerequisites</h1>
+
+<p>
+    <ul class="bulletlist">
+        <li> Install JDK 1.6 or higher from <a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html" target="_new">here</a>, if your Windows is 64-bit, choose the <b>jdk-...-x64.exe</b> otherwise choose the <b>jdk-...-i584.exe</b></li>
+        <li> After installing JDK, please make sure Windows can find Java compiler and interpreter by doing the following 3 steps:</li>
+        <br />
+        &nbsp;&nbsp;&nbsp;1. Select Start -> Computer -> System Properties -> Advanced system settings -> Environment Variables -> System variables -> PATH
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;2. Prepend C:\Program Files\Java\<b>jdk1.7.0_06\bin</b>; to the beginning of the PATH variable
+        <br />
+        <br /> <i>&nbsp;&nbsp;&nbsp;We assume that you install <b>jdk1.7.0_06</b> here.</i>
+        <br /> <i>&nbsp;&nbsp;&nbsp;If you wish to use other version JDK, please find the version number under C:\Program Files\Java\ and change the PATH variable accordingly.</i>
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;3. Click OK three times
+        <br /><br />
+        <li> <i>Optional: Install your favorite Java IDE or you can use any text editor for modifying Java source code</i></li>
+        <li> Create a base directory: c:\2012SapHadoop\</li>
+        <li> Use "mouse right click -> save link as" to download <a href="putty.exe">putty.exe</a> and <a href="pscp.exe">pscp.exe</a> then save them into your base directory: c:\2012SapHadoop\ </li>
+        <li> Use "mouse right click -> save link as" to download the Hadoop core library in c:\2012SapHadoop\ from <a href="hadoop-core-0.20.2-cdh3u4.jar">here</a></li>
+        <li> Use "mouse right click -> save link as" to download three jar files in c:\2012SapHadoop\ from <a href="log4j-1.2.15.jar">Log4J</a>, <a href="commons-logging-1.0.4.jar">Apache Common Logging</a> and <a href="commons-io-2.0.1.jar">Apache Common IO</a></li>
+        <li> Use "mouse right click -> save link as" to download the Apache Common CSV Library in c:\2012SapHadoop\ from <a href="commons-csv-20070730.jar">Apache CSV Library API</a></li>
+        <li> Use "mouse right click -> save link as" to download the MapReduce java source code <a href="LogProcessor.java">here</a> into your base directory: c:\2012SapHadoop\</li>
+        <li> Use "mouse right click -> save link as" to download the windows batch file <a href="compile.bat">here</a> for compiling and uploading the jar file</li>
+        <li> Now test if you have setup the environment correctly:</li>
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;1. Open a Windows Command Prompt (it is located at: C:\Windows\System32\cmd.exe and please double click to bring it up)
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;1-1. Please do a quick test by typing in "javac" in the Windows Command Prompt to make sure it can find and execute the Java compile
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(If you see "javac is not recognized as an internal or external command", please make sure your PATH environment variable is set correctly)
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;2. Change directory to your base folder: c:\2012SapHadoop\ by typing "cd c:\2012SapHadoop\" in your Windows Command Prompt
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;3. Now try to run the batch file by typing "compile.bat" in your Windows Command Prompt
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;4. The batch file will ask you to enter your SAP I-Number, please type in your I-Number and press "Enter" button on your keyboard
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;5. The Windows Command Prompt will start compiling the code, creating a Java jar file and uploading it to SAP Hadoop Master node
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;5-1. Your might see your Windows Command Prompt show this warning to you, please type "y" to confirm and proceed
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img class="putty" src="cmdPscpConfirm.png">
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;6. Before it starts uploading, you will be prompted to enter a password for uploading, please type in "abcd1234"
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;7. You should see something like this in the Windows Command Prompt:
+        <br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>I827779.jar               | 12 kB |  12.9 kB/s | ETA: 00:00:00 | 100%</b>
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;8. Now let's run putty to SSH to SAP Hadoop Master Node (LLBPAL36), please type in "putty.exe" in the Windows Command Prompt and you should see this:
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img class="putty" src="putty.exe.png">
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;- In its "Host Name (or Ip Address)" field, please type in "LLBPAL36.pal.sap.corp" and click "Open" button
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(You might see a warning from Putty like this, please click "Yes" and proceed)
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img class="putty" src="putty.prompt.png">
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;- You will then see a screen like this to prompt you for the login username and password, please use:
+        <br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Username: hadoop</b>
+        <br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>Password: abcd1234</b>
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img class="putty" src="putty.exe.1.png">
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;- Once logged in, you shall see this and that means you have completed your environment setup <br />
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img class="putty" src="putty.exe.2.png">
+        <br /><br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Now you can safely close the Putty window
+    </ul>
+    <br />
+    Please contact <a href="mailto:dewei.sun@sap.com">Dewei Sun</a>, if there is any error opening above links.
+</p>
+</div>
+<!-- end gc-pagecontent -->
+</div>
+<!-- end gooey wrapper -->
+</div>
+<!-- end codesite content -->
+<div id="gc-footer" dir="ltr">
+    <div class="text">
+        ©2011 SAP
+    </div>
+</div>
+<!-- end gc-footer -->
+
+</body>
+</html>
+

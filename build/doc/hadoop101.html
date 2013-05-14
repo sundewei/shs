@@ -1,0 +1,561 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>SAP Hadoop 101</title>
+    <link href="css/codesite.pack.04102009.css" type="text/css" rel="stylesheet">
+    <link href="css/common.css" type="text/css" rel="stylesheet">
+    <script type="text/javascript" src="../resources/js/jquery.js"></script>
+    <script type="text/javascript" src="js/common.js"></script>
+</head>
+
+<body class="gc-documentation">
+
+<div id="gc-container">
+
+<!-- start gc-topnav -->
+<div id="gc-topnav">
+    <h1>SAP Hadoop 101</h1>
+    <ul id="docs" class="gc-topnav-tabs">
+    </ul>
+</div>
+<script type="text/javascript">
+    $("ul#docs").html(getTopNavTabHtml());
+    $("#hadoop101").addClass("selected");
+</script>
+<!-- end gc-topnav -->
+
+<div class="g-section g-tpl-170">
+
+<div class="g-unit g-first" id="gc-toc">
+    <ul>
+        <li><h2>Quick Links</h2>
+            <ul>
+                <li>
+                    <a href="#introduction" title="Introduction">Introduction</a>
+                </li>
+
+                <li>
+                    <a href="#prerequisites" title="Prerequisites">Prerequisites</a>
+                </li>
+
+                <li>
+                    <a href="#workflow" title="Workflow in Our Example">Workflow in Our Example</a>
+                </li>
+
+                <li>
+                    <a href="#source" title="Source Code">Source Code</a>
+                </li>
+
+                <li>
+                    <a href="#runMr" title="How to Run Your MapReduce Job">How to Run Your MapReduce Job</a>
+                </li>
+
+                <li>
+                    <a href="#exercise" title="Exercise">Exercise</a>
+                </li>
+                <!--
+                <li>
+                    <a href="#conclusion" title="Conclusion">Conclusion</a>
+                </li>
+                -->
+                <li>
+                    <a href="#qa" title="Q & A">Q & A</a>
+                </li>
+
+            </ul>
+        </li>
+    </ul>
+
+</div>
+
+<a name="gc-pagecontent-anchor"></a>
+
+<div class="g-unit" id="gc-pagecontent">
+
+<a name="introduction"></a>
+
+<h1>Introduction</h1>
+<p>
+    This SAP Hadoop 101 course aims to provide an easy MapReduce job example for submitting to the SAP Hadoop cluster.
+    <ul class="bulletlist">
+        <span class="mOver"><br /><li>The SAP Hadoop cluster consists of 5 HP medium level servers with 58 TB total storage capacity (1 master and 4 slave nodes).  Based on the hardware profile, each slave is setup to have 5 map and 3 reduce slots.</li></span>
+        <span class="mOver"><br /><li>The input log file for this example is stored in HDFS, the Hadoop Distributed File System (HDFS™) is the primary storage system used by Hadoop applications.  In the future examples, we will introduce different data sources and destinations for your MapReduce code.</li></span>
+        <span class="mOver"><br /><li>Please visit the <a target="_blank" href="http://llbpal36.pal.sap.corp:50070/dfshealth.jsp">NameNode Status</a> to browse HDFS, and our input file: <a target="_blank" href="http://llbpal35.pal.sap.corp:50075/browseBlock.jsp?blockId=7223963280462188210&blockSize=67108864&genstamp=11011&filename=%2Fuser%2Fhadoop%2F2012SapHadoopCourse%2Fdata%2Faccess.log&datanodePort=50010&namenodeInfoPort=50070">access.log</a>: 314.87 MB with 5 data blocks and 64 MB each block.)</li></span>
+        <span class="mOver"><br /><li>The TextInputFormat and TextOutputFormat:</li></span>
+        <span class="mOver"><br />&nbsp;&nbsp;&nbsp;&nbsp;<b>-</b>&nbsp;&nbsp;TextInputFormat:<br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The TextInputFormat is the default InputFormat class for MapReduce program which will read the specific file (if the path points to a single file) as plain text or all files in that path line by line.  The file content passed to the MapReduce code is represented as key and value pairs (the key is the line number and the value is actual the content of that entire line).
+        <br /></span>
+        <span class="mOver"><br />&nbsp;&nbsp;&nbsp;&nbsp;<b>-</b>&nbsp;&nbsp;TextOutputFormat:<br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Similar to TextInputFormat, the TextOutputFormat is the default OutputFormat class for MapReduce program which will write a key and value pair as one line in a HDFS file as plain text.
+        <br /><br /></span>
+        <span class="mOver"><li>MapReduce processes in key-value pairs and here is the high level workflow:</li></span>
+        <span class="mOver"><br />&nbsp;&nbsp;&nbsp;&nbsp; <b>-</b> The Mapper class will receive the input as key-value pairs and then generates transformed key-value pairs as output.  It is possible for an input key-value pair to be transformed into many output key-value pairs or even none.</span>
+        <span class="mOver"><br /><br />&nbsp;&nbsp;&nbsp;&nbsp; <b>-</b> Then MapReduce Context will then perform the following operations before invoking the Reducer class:</span>
+        <span class="mOver"><br /><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1. The mapper output key-value pairs will be sorted by the keys.</span>
+        <span class="mOver"><br /><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2. The values of the same key will be grouped into an iterable object then be assigned as the new value for that key.</span>
+        <span class="mOver"><br /><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3. When Reducer is invoked, the sorted key-value pairs will be the input and Reducer will apply its business logic to generate new key-value pairs.</span>
+        <br /><br />
+        <span class="mOver"><li>The MapReduce outputs the Reducer's output (via TextOutputFormat to HDFS in our example).</li></span>
+    </ul>
+</p>
+
+<a name="prerequisites"></a>
+
+<h1>Prerequisites</h1>
+
+<p>
+    <a href="hadoop101Prerequisites.html" target="_blank">Prerequisite Steps</a>
+</p>
+
+<a name="workflow"></a>
+
+<h1>Workflow in Our Example</h1>
+<p>
+    <br />
+    In our example, what we want to do is to find out the products that were browsed together in each session.  So the code needs to identify each session and list all distinct product ids (ASIN number) belonging to that session.
+    <br /><br />
+    <div class="workflowStep">1.  When TextInputFormat class reads the file, it assigns a number for each line</div>
+    <br /><br />
+    <img class="bigScreen" src="101-1.png">
+    <br /><br />
+    <div class="workflowStep">2.  TextInputFormat treats the line content as the values</div>
+    <br /><br />
+    <img class="bigScreen" src="101-2.png">
+    <br /><br />
+    <div class="workflowStep">3.  Mapper extract the fields it needs and prepare the new key-value pairs</div>
+    <br /><br />
+    <img class="bigScreen" src="101-3.png">
+    <br /><br />
+    <div class="workflowStep">4.  The mapper writes new key-value pairs to the MapReduce context</div>
+    <br /><br />
+    <table>
+        <tr><td class="workflow yellow" colspan="5">Mapper</td></tr>
+        <tr>
+            <td class="workflow grey">Map Input Key</td><td class="workflow grey" grey>Map Input Value</td>
+            <td class="workflow"></td>
+            <td class="workflow green">Map Output Key</td><td class="workflow green">Map Output Value</td>
+        </tr>
+        <tr>
+            <td class="workflow grey">1</td><td class="workflow grey">237.33.20.14 - - [01/Jan/2008:00:31:37 -0800] "G...</td>
+            <td class="workflow"><img class="icon" src="Arrorw-Right.png"></td>
+            <td class="workflow green">237.33.20.14</td><td class="workflow green">1324535665131_B004I7XY7C</td>
+        </tr>
+        <tr>
+            <td class="workflow grey">2</td><td class="workflow grey">22.239.27.163 - - [01/Jan/2008:00:31:35 -0800] "G...</td>
+            <td class="workflow"><img class="icon" src="Arrorw-Right.png"></td>
+            <td class="workflow green">22.239.27.163</td><td class="workflow green">1324535665134_B002M78EA2</td>
+        </tr>
+        <tr>
+            <td class="workflow grey">3</td><td class="workflow grey">91.57.101.198 - - [01/Jan/2008:00:31:37 -0800] "G...</td>
+            <td class="workflow"><img class="icon" src="Arrorw-Right.png"></td>
+            <td class="workflow green">91.57.101.198</td><td class="workflow green">1324535665143_B001S2PVW6</td>
+        </tr>
+        <tr>
+            <td class="workflow grey">4</td><td class="workflow grey">237.33.20.14 - - [01/Jan/2008:00:31:35 -0800] "G...</td>
+            <td class="workflow"><img class="icon" src="Arrorw-Right.png"></td>
+            <td class="workflow green">237.33.20.14</td><td class="workflow green">1324435456542_B0065DSGFG</td>
+        </tr>
+        <tr>
+            <td class="workflow grey">5</td><td class="workflow grey">91.57.101.198 - - [01/Jan/2008:00:31:35 -0800] "G...</td>
+            <td class="workflow"><img class="icon" src="Arrorw-Right.png"></td>
+            <td class="workflow green">91.57.101.198</td><td class="workflow green">1324532035763_B001EWF872</td>
+        </tr>
+    </table>
+    <br /><br />
+    <div class="workflowStep">5.  MapReduce context sorts the mapper output key-value pairs by the keys in ascending order</div>
+    <br /><br />
+    <table>
+        <tr>
+            <td class="workflow yellow">Keys, sorted in ascending order</td><td class="workflow yellow">Values</td>
+        </tr>
+        <tr>
+            <td class="workflow blue">22.239.27.163</td><td class="workflow blue">1324456545137_B002M78EA2</td>
+        </tr>
+        <tr>
+            <td class="workflow blue">22.239.27.163</td><td class="workflow blue">1324535589963_B002M4S562</td>
+        </tr>
+        <tr>
+            <td class="workflow red">237.33.20.14</td><td class="workflow red">1324535623213_B004I7XY7C</td>
+        </tr>
+        <tr>
+            <td class="workflow red">237.33.20.14</td><td class="workflow red">1324435456542_B0065DSGFG</td>
+        </tr>
+        <tr>
+            <td class="workflow red">237.33.20.14</td><td class="workflow red">1324535667984_B00988RESD</td>
+        </tr>
+        <tr>
+            <td class="workflow blue">91.57.101.198</td><td class="workflow blue">1324535665143_B001R6E4T7</td>
+        </tr>
+        <tr>
+            <td class="workflow blue">91.57.101.198</td><td class="workflow blue">1324531225345_B001S2PVW6</td>
+        </tr>
+        <tr>
+            <td class="workflow blue">91.57.101.198</td><td class="workflow blue">1324535121552_B00154553E</td>
+        </tr>
+        <tr>
+            <td class="workflow blue">91.57.101.198</td><td class="workflow blue">1324532035763_B001EWF872</td>
+        </tr>
+    </table>
+    <br /><br />
+    <div class="workflowStep">6.  MapReduce context groups the mapper output key-value pairs by the sorted keys</div>
+    <br /><br />
+    <table>
+        <tr>
+            <td class="workflow yellow">Keys, sorted in ascending order</td><td class="workflow yellow">Values, grouped by the keys</td>
+        </tr>
+        <tr>
+            <td class="workflow blue">22.239.27.163</td><td class="workflow blue">1324456545137_B002M78EA2<br />1324535589963_B002M4S562</td>
+        </tr>
+        <tr>
+            <td class="workflow red">237.33.20.14</td><td class="workflow red">1324535623213_B004I7XY7C<br />1324435456542_B0065DSGFG<br />1324535667984_B00988RESD</td>
+        </tr>
+        <tr>
+            <td class="workflow blue">91.57.101.198</td><td class="workflow blue">1324535665143_B001R6E4T7<br />1324531225345_B001S2PVW6<br />1324535121552_B00154553E<br />1324532035763_B001EWF872</td>
+        </tr>
+    </table>
+    <br /><br />
+    <div class="workflowStep">7.  The reducer gets the key-value pairs from the context and write all product asin numbers from a value then append the "starting" datestamp at the end</div>
+    <br /><br />
+    <table>
+        <tr><td class="workflow yellow" colspan="5">Reducer</td></tr>
+        <tr>
+            <td class="workflow grey">Reducer Input Key</td><td class="workflow grey">Reducer Input Value</td><td class="workflow"></td><td class="workflow green">Reduce Output Key</td><td class="workflow green">Reduce Output Value</td>
+        </tr>
+        <tr>
+            <td class="workflow grey">22.239.27.163</td><td class="workflow grey">1324456545137_B002M78EA2<br />1324535589963_B002M4S562</td>
+            <td class="workflow"><img class="icon" src="Arrorw-Right.png"></td><td class="workflow green">""</td><td class="workflow green">B002M78EA2,B002M4S562,2008-01-01</td>
+        </tr>
+        <tr>
+            <td class="workflow grey">237.33.20.14</td><td class="workflow grey">1324535623213_B004I7XY7C<br />1324435456542_B0065DSGFG<br />1324535667984_B00988RESD</td>
+            <td class="workflow"><img class="icon" src="Arrorw-Right.png"></td><td class="workflow green">""</td><td class="workflow green">B004I7XY7C,B0065DSGFG,B00988RESD,2008-01-01</td>
+        </tr>
+        <tr>
+            <td class="workflow grey">91.57.101.198</td><td class="workflow grey">1324535665143_B001R6E4T7<br />1324531225345_B00VGDFB23<br />1324535121552_B00154553E<br />1324532035763_B001EWF872</td>
+            <td class="workflow"><img class="icon" src="Arrorw-Right.png"></td><td class="workflow green">""</td><td class="workflow green">B001R6E4T7,B001S2PVW6,B00154553E,B001EWF872,2008-01-01</td>
+        </tr>
+    </table>
+    <br /><br />
+    <div class="workflowStep">8. TextOutputFormat writes the key and value pairs to a file on HDFS as plain text</div>
+</p>
+
+<a name="source"></a>
+
+<h1>Source Code</h1>
+
+<p>
+    Please download the source from here and save it to c:\2012SapHadoop\
+    <pre>
+        <code>
+<span class="comment">
+/**
+ * The Mapper class
+ */</span>
+public static class LogMapper extends Mapper&lt;<span class="inKey">LongWritable</span>, <span class="inVal">Text</span>, <span class="outKey">Text</span>, <span class="outVal">Text</span>&gt; {
+    <span class="comment">// static variables for reusing</span>
+    private static final Text MAP_OUT_KEY = new Text();
+    private static final Text MAP_OUT_VALUE = new Text();
+    private static final StringBuilder BUFFER = new StringBuilder();
+    <span class="comment">
+    /**
+     * To select only the valid lines (with product id) from the access log and use IP to identify every key-value
+     * entry.  The value is a combined text of "timestamp" + "_" + "product asin"
+     * @param inKey the line number of the access log
+     * @param inValue the actual content of each line
+     * @param context the object to write mapper's key-value pairs
+     * @throws IOException if HDFS reading or writing exception occurred
+     * @throws InterruptedException if the exccution is interrupted by anything
+     */</span>
+    public void map(LongWritable inKey, Text inValue, Context context)
+            throws IOException, InterruptedException {
+        <span class="comment">// Get the line content as a String</span>
+        String line = inValue.toString();
+        <span class="comment">// Parse each line into an AccessEntry object so picking different fields as the key-value pairs easier</span>
+        AccessEntry accessEntry = null;
+        try {
+            accessEntry = getAccessEntry(line);
+        } catch (IOException ioe) {
+            <span class="comment">// Just print the exception since we didn't setup a logger for this example</span>
+            ioe.printStackTrace();
+        }
+
+        if (accessEntry != null) {
+            String itemAsin = getItemAsin(accessEntry.getAttribute("resource"));
+            <span class="comment">// Only when a valid asin is found then we keep processing</span>
+            if (itemAsin != null) {
+                <span class="comment">// Clean up the string buffer</span>
+                BUFFER.setLength(0);
+                <span class="comment">// the key-value pair looks like: "237.33.20.14" : "1324535665131_B004I7XY7C"</span>
+                <span class="mOver">
+                MAP_OUT_KEY.set(accessEntry.getAttribute("ip"));
+                </span>
+
+                <span class="mOver">
+                BUFFER.append(accessEntry.getAttribute("timestamp")).append("_").append(itemAsin);
+                </span>
+                MAP_OUT_VALUE.set(BUFFER.toString());
+
+                <span class="comment">// Write to the context, this is the mapper's output</span>
+                <span class="mOver">
+                 context.write(MAP_OUT_KEY, MAP_OUT_VALUE);
+                </span>
+            }
+        }
+    }
+}
+
+<span class="comment">
+/**
+ * The Reducer class
+ */</span>
+public static class LogReducer extends Reducer&lt;<span class="inKey">Text</span>, <span class="inVal">Text</span>, <span class="outKey">Text</span>, <span class="outVal">Text</span>&gt; {
+    <span class="comment">// static variables for reusing</span>
+    <span class="mOver">
+    private static final Text REDUCE_OUT_KEY = new Text("");
+    </span>
+    private static final Text REDUCE_OUT_VALUE = new Text();
+    private static final StringBuilder BUFFER = new StringBuilder();
+    private static TreeMap&lt;Long, String&gt; TIMED_ASINS = new TreeMap&lt;Long, String&gt;();
+
+    public void reduce(Text inKey, Iterable&lt;Text&gt; inValues, Context context)
+            throws IOException, InterruptedException {
+        Iterator&lt;Text&gt; inValueIt = inValues.iterator();
+        while (inValueIt.hasNext()) {
+            <span class="comment">// Find all timestamp +"_" + asin from the value list and use their timestamps as keys to get the asins</span>
+            <span class="comment">// in order</span>
+            String[] values = inValueIt.next().toString().split("_");
+            TIMED_ASINS.put(Long.parseLong(values[0]), values[1]);
+        }
+        <span class="comment">
+        // Use 30 minutes as the session length, all asins browsed in a session (can be longer than 30 minutes if a
+        // user keeps having browsing activities, the session will keep extending until session is idle for 30
+        // minutes)</span>
+        <span class="mOver">
+        List&lt;Session&gt; sessions = getSessions(TIMED_ASINS, 30);
+        </span>
+        TIMED_ASINS = new TreeMap&lt;Long, String&gt;();
+
+        for (Session session : sessions) {
+            BUFFER.setLength(0);
+            if (session.timestamps.size() &gt; 0) {
+                <span class="mOver">
+                for (String itemLookup: session.itemAsins) {
+                    BUFFER.append(itemLookup).append(",");
+                }
+                </span>
+                <span class="comment">// Set the first product's datestamp at the end</span>
+                <span class="mOver">
+                BUFFER.append(SIMPLE_DATE_FORMAT.format(session.timestamps.get(0)));
+                </span>
+                REDUCE_OUT_VALUE.set(BUFFER.toString());
+                context.write(REDUCE_OUT_KEY, REDUCE_OUT_VALUE);
+            }
+        }
+    }
+}
+
+public Job getMapReduceJob() throws Exception {
+
+    <span class="comment">// Create a Configuration object, this works when core-site.xml and hdfs-site.xml are in the CLASSPATH</span>
+    <span class="mOver">final Configuration conf = new Configuration();</span>
+
+    <span class="comment">// Set up personal job name and output directory</span>
+    String jobName = "myFirstMrJob by " + MY_I_NUMBER;
+    String myOutputDirectory = "/user/hadoop/2012SapHadoopCourse/results/" + MY_I_NUMBER;
+    Path myOutputPath = new Path(myOutputDirectory);
+
+    <span class="comment">// Delete the output directory if your personal directory does exist</span>
+    <span class="mOver">
+    FileSystem fileSystem = myOutputPath.getFileSystem(conf);
+    if (fileSystem.exists(myOutputPath)) {
+        fileSystem.delete(myOutputPath, true);
+    }
+    </span>
+
+    <span class="comment">// Create the job</span>
+    Job job = new Job(conf, jobName);
+    <span class="mOver">
+    <span class="comment">// Tell Hadoop that the job class is in the jar specified from the command line</span>
+    job.setJarByClass(LogProcessor.class);
+
+    <span class="comment">// Set the mapper class</span>
+    job.setMapperClass(LogMapper.class);
+    <span class="comment">// Set the reducer class</span>
+    job.setReducerClass(LogReducer.class);
+    </span>
+
+    <span class="mOver">
+    <span class="comment">// Tell FileInputFormat to read the log file</span>
+    FileInputFormat.addInputPath(job, new Path(INPUT_PATH));
+    <span class="comment">// Tell FileOutputFormat to write result to your personal folder on HDFS</span>
+    FileOutputFormat.setOutputPath(job, myOutputPath);
+    </span>
+
+    <span class="mOver">
+    <span class="comment">
+    // Now set the TextInputFormat as our InputFormat class,
+    // TextInputFormat is a subclass of FileInputFormat therefore it
+    // inherits the InputPath we set to FileInputFormat</span>
+    job.setInputFormatClass(TextInputFormat.class);
+    <span class="comment">
+    // Now set the TextOutputFormat as our OutputFormat class, again,
+    // TextOutputFormat is a subclass of FileOutputFormat so the OutputPath
+    // we set to FileOutputFormat will be used here</span>
+    job.setOutputFormatClass(TextOutputFormat.class);
+    </span>
+
+    <span class="mOver">
+    <span class="comment">// Mapper's output key-value types</span>
+    <span class="important green">job.setMapOutputKeyClass(Text.class);  </span>
+    <span class="important green">job.setMapOutputValueClass(Text.class);</span>
+    </span>
+
+    <span class="mOver">
+    <span class="comment">// Reducer's output key-value types</span>
+    <span class="important red">job.setOutputKeyClass(Text.class);       </span>
+    <span class="important red">job.setOutputValueClass(Text.class);     </span>
+    </span>
+
+    return job;
+}
+
+<span class="comment">
+/**
+ * The main method
+ * @param arg the parameters from the command line
+ * @throws Exception if the execution is interrupted by anything
+ */</span>
+public static void main(String[] arg) throws Exception {
+    <span class="comment">// The SAP I Number</span>
+    if (arg.length < 1) {
+        System.out.println("Please specify your SAP I number.");
+        System.exit(1);
+    }
+    LogProcessor myJob = new LogProcessor(arg[0]);
+    <span class="comment">// Wait for the job to complete</span>
+    myJob.getMapReduceJob().waitForCompletion(true);
+}
+        </code>
+    </pre>
+
+</p>
+
+<a name="runMr"></a>
+
+<h1>How to Run Your MapReduce Job</h1>
+
+<p>
+    <br /><br />
+    <div class="step">1.  Open a Windows Command Prompt and change to your base directory: c:\2012SapHadoop\</div>
+    <br /><br />
+    <div class="step">2.  Type "putty.exe" in the Windows Command Prompt to bring up the putty window</div>
+    <br /><br />
+    <div class="step">3.  In its "Host Name (or Ip Address)" field, please type in "LLBPAL36.pal.sap.corp" and click "Open" button</div>
+    <br /><br />
+    <div class="step">4.  Use the following creditial to login:</div>
+    <br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Username: hadoop
+    <br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Password: abcd1234
+    <br /><br />
+    <div class="step">5.  Once logged in, type the following command:</div>
+    <br />
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="command">hadoop jar <span class="replaceCommand">[YourINumber].jar</span> LogProcessor <span class="replaceCommand">[YourINumber]</span></span>
+    <br /><br />
+    &nbsp;&nbsp;&nbsp;<span class="command">For example: <span class="mOver">hadoop jar i827779.jar LogProcessor i827779</span></span>
+    <br /><br />
+    <div class="step">6.  Go to the Hadoop job status page: <a target="_blank" href="http://llbpal36.pal.sap.corp:50030/jobtracker.jsp">LLBPAL36 Map/Reduce Administration</a> to see your job status</div>
+</p>
+
+<a name="exercise"></a>
+
+<h1>Exercise</h1>
+
+<p>
+    Find the frequently-accessed images so IT can decide to cache them in memory on image servers.
+</p>
+<!--
+<a name="conclusion"></a>
+
+<h1>Conclusion</h1>
+
+<p>
+    1.  The MapReduce paradigm requires programmers to process the data in key-value pairs therefore selecting the right key and value could make a big difference.
+    <br />2.  Complicated business case might require chaining multiple MapReduce jobs with previous job's output being next job's input.
+    <br />3.  Structured data with small volume is usually more efficient and easier to process in RDBMS, Hadoop MapReduce is not a solution for everything.
+    <br />4.  Once a working MapReduce job is written, it can be reused even the data volume changes (from a few megabytes to petabytes).
+</p>
+
+-->
+<a name="qa"></a>
+
+<h1>Q & A</h1>
+<p>
+    Q: Why does MapReduce have to sort the key-value pairs after the mapper?
+    <br/>A: The reason why MapReduce sorts the keys is to ensure when the result is generated to the destination, it can be partitioned and easy for efficient random lookup afterward.
+
+    <br/><br/>
+    Q: How the MapReduce decide how many Mapper task a job should spawn?
+    <br/>A: In our example, the number of Mapper is the input log file's data block count on the HDFS.  This enables the Master node to assign the Mapper task to available Slave nodes which have the data blocks for performance optimization.
+
+    <br/><br/>
+    Q: When HDFS divides the data block, how to make ?
+    <br/>A: In our example, the number of Mapper is the input log file's data block count on the HDFS.  This enables the Master node to assign the Mapper task to available Slave nodes which have the data blocks for performance optimization.
+
+    <br/><br/>
+    Q: HDFS chops file into blocks, what happens when some input files need to be processed as a whole?
+    <br/>A: After the meeting, I think I didn’t answer this question clear enough, here is some more to it:<br/>
+        <br/><1>  HDFS chops big files into blocks and stores them separately.
+        <br/><2>  When using “TextInputFormat”, it will treat each block as an input to a Mapper task.
+        <br/><3>  If you need to process input files as a whole file individually (like images and videos), then you should not use TextINputFormat.
+        <br/><br/>
+        Instead you can extend FileInputFormat class that would pass whole file as an input to a Mapper task rather than its blocks.
+        Here is an online example:  https://gist.github.com/808035    (WholeFileINputFormat)
+    <br/><br/>
+    Q: In the example we showed today, the keys to the Mapper are the line numbers of each data block, which is just a counter within a block.
+       Can we use other key that is unique among all input blocks/files?
+    <br/>A: Yes, in that case, you will need to write your own InputFormat or extends an existing one so it can use the block id as a prefix to the line numbers or maybe it parses the file and extract certain field in the line to be the key.
+
+    <br/><br/>
+    Q: When using Hadoop for continuously business processing, that will make whole cluster reach almost 100% CPU usage…is it ok?
+    A: Yes, Hadoop is meant to be fully loaded with tasks/jobs.  One way to help with the situation is to apply different scheduling policy so Hadoop will do resource allocation based on the group your jobs belongs to.  This can be easily done at the server side configuration files with a restart afterward.
+
+    <br/><br/>
+    Q: Is there a way to share resources among running jobs?
+    <br/>A: Yes, HBase is commonly used as the persistent layer for MapReduce jobs.  Its IO operations apply write-ahead logging (WAL) and “hot data” is cached in memory.
+       <br/><br/>
+       Or if you use powerful database like HANA, you can have each of your Mapper task connect to HANA during initialization time then access the database.
+       <br/><br/>
+       Actually you can use any persistent backend as your data sharing mechanism since Mapper tasks is just a Java class and can connect to anything you want like standalone Java code.
+
+</p>
+
+</div>
+<!-- end gc-pagecontent -->
+</div>
+<!-- end gooey wrapper -->
+</div>
+<!-- end codesite content -->
+<div id="gc-footer" dir="ltr">
+    <div class="text">
+        ©2012 SAP
+    </div>
+</div>
+<!-- end gc-footer -->
+
+</body>
+<script language="javascript">
+    /*global $ */
+    $(function () {
+        $("span.mOver").hover(
+                function() {
+                    $(this).addClass("blue");
+                },
+                function() {
+                    $(this).removeClass("blue");
+                }
+        );
+    });
+</script>
+</html>
+

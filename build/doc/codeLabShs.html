@@ -1,0 +1,355 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>SAP Task Force Web App</title>
+    <link href="css/codesite.pack.04102009.css" type="text/css" rel="stylesheet">
+    <script type="text/javascript" src="../resources/js/jquery.js"></script>
+    <script type="text/javascript" src="js/common.js"></script>
+</head>
+
+<body class="gc-documentation">
+
+<style type='text/css'>
+img.screen {
+ width: 800px ;
+ height: 600px;
+ border-style:solid;
+ border-width:1px;
+ border-color:#98bf21;
+}
+</style>
+
+<div id="gc-container">
+
+<!-- start gc-topnav -->
+<div id="gc-topnav">
+    <h1>SAP Task Force Web App</h1>
+    <ul id="docs" class="gc-topnav-tabs">
+    </ul>
+</div>
+<script type="text/javascript">
+    $("ul#docs").html(getTopNavTabHtml());
+    $("#codeLabShs").addClass("selected");
+</script>
+<!-- end gc-topnav -->
+
+<div class="g-section g-tpl-170">
+
+<div class="g-unit g-first" id="gc-toc">
+    <ul>
+        <li><h2>Quick Links</h2>
+            <ul>
+                <li>
+                    <a href="#Introduction" title="Introduction">Introduction</a>
+                </li>
+
+                <li>
+                    <a href="#Prerequisites" title="Prerequisites">Prerequisites</a>
+                </li>
+
+                <li>
+                    <a href="#Login" title="Login">Task Force Login</a>
+                </li>
+
+                <li>
+                    <a href="#Uploader" title="Uploader">Task Force HDFS Uploader</a>
+                </li>
+
+                <li>
+                    <a href="#MapReduce" title="MapReduce">MapReduce Task Submitter</a>
+                </li>
+
+                <li>
+                    <a href="#Conclusion" title="Conclusion">Conclusion</a>
+                </li>
+
+            </ul>
+        </li>
+    </ul>
+
+</div>
+
+<a name="gc-pagecontent-anchor"></a>
+
+<div class="g-unit" id="gc-pagecontent">
+
+<a name="Introduction"></a>
+
+<h1>Introduction</h1>
+<p>
+    SAP Task Force is a prototype J2EE web application built to facilitate submitting organic MapReduce tasks to prototype SAP Hadoop cluster. <br />
+
+    It is highly recommended that you read <a href="http://hadoop.apache.org/common/docs/current/mapred_tutorial.html" target="_new">MapReduce tutorial</a> before proceeding with this code lab. <br /><br />
+
+    This code lab will mainly focus on the following: <br />
+
+    <ul class="bulletlist">
+        <li> Usage of HDFS uploader in Task Force</li>
+        <li> MapReduce code examples</li>
+        <li> MapReduce task submission via Task Force </li>
+        <li> Track submitted tasks in Task Force </li>
+    </ul>
+</p>
+
+<a name="Prerequisites"></a>
+
+<h1>Prerequisites</h1>
+
+<p>
+    <ul class="bulletlist">
+        <li> Create a directory c:\codelab and c:\data</li>
+        <li> Install JDK 1.6 or higher from <a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html" target="_new">here</a></li>
+        <li> Save the Hadoop core library in c:\codelab or and include it in the CLASSPATH (download <a href="hadoop-core-0.20.2-cdh3u4.jar">here</a>)</li>
+        <li> Save the SAP Hadoop API Library in c:\codelab and include it in your CLASSPATH (download <a href="../resources/binary/sap_hadoop.jar">here</a>)</li>
+        <li> Save the Hive-related libraries in c:\codelab and include them in your CLASSPATH (download <a href="hive-exec-0.7.1-cdh3u4.jar">hive-exec-0.7.1-cdh3u4</a>, <a href="hive-jdbc-0.7.1-cdh3u4.jar">hive-jdbc-0.7.1-cdh3u4</a>, <a href="hive-metastore-0.7.1-cdh3u4.jar">hive-metastore-0.7.1-cdh3u4</a>, <a href="hive-service-0.7.1-cdh3u4.jar">hive-service-0.7.1-cdh3u4</a>, <a href="libfb303.jar">libfb303</a>)</li>
+        <li> Save 3 Apache Common Libraies in c:\codelab and include them in your CLASSPATH: <a href="log4j-1.2.15.jar">Log4J</a>, <a href="commons-logging-1.0.4.jar">Apache Common Logging API</a> and <a href="commons-io-2.0.1.jar">Apache Common IO API</a></li>
+        <li> (Optional) Request access to SAP Hadoop cluster by sending your employee ID to <a href="mailto:dewei.sun@sap.com">me</a> or you can just use the test account in the code snippets</li>
+        <li> The TSV ("Tab-separated values") file used in this code lab can be downloaded <a href="real_category.tsv">here</a>
+                (You can save the tsv file to <b>c:\data\</b> which is the folder this code lab uses)</li>
+    </ul>
+    <br />
+    Please contact <a href="mailto:dewei.sun@sap.com">Dewei Sun</a>, if there is any error opening above links.
+</p>
+
+<a name="Login"></a>
+
+<h1>Task Force Login</h1>
+
+<p>
+    It is recommended that you request a login for using SAP Task Force web prototype application because resource security is based on <a href="http://en.wikipedia.org/wiki/POSIX" target="_new">POSIX</a>.  <br />
+    Of course, there is a default login for visitors but please note that the files uploaded via the default login are not protected and can be removed by other visitors. <br /><br />
+
+    Here is the <a href="http://hadoop.pal.sap.corp:8080/shs/jsp/login.jsp" target="_new">login</a> page of Task Force: <br /><br />
+    <img src="login.png" class="screen" /> <br /><br />
+    You can either enter your Task Force login or simply click login to use the visitor account.
+</p>
+
+
+<a name="Uploader"></a>
+
+<h1>Task Force HDFS Uploader</h1>
+
+<p>
+    <strong>Prototype SAP Hadoop cluster uses HDFS as its primary storage system.  Therefore, before submitting your MapReduce tasks, you have to upload the input files to HDFS.</strong>
+    <br /><br />
+    1. Task Force provides a multipart upload form for uploading multiple files to HDFS, files uploaded via the uploader will be stored at user's personal HDFS folder:
+    <br /><br />
+    <img src="uploader.png" class="screen" /> <br /><br />
+    2. Click on the "Uplaoder Input Files" button brings up the multi-file selector: <br /><br />
+    You can select multiple files and upload them altogether by clicking "Open" button: <br /><br />
+    <img src="uploaderSelect.png" class="screen" /> <br /><br />
+    3. The uploader will show the status of each upload and refresh the file table when a file is done uploading: <br /> <br />
+    <img src="uploaderStatus.png" class="screen" /> <br /><br />
+</p>
+
+<a name="MapReduce"></a>
+
+<h1>MapReduce Task Submitter</h1>
+
+<p>
+    <strong>Like other Hadoop clusters, MapReduce tasks need to be uploaded as a jar file and submitted to the server.  The Task Submitter UI provides an easy way to upload your jar file and select MapReduce class to run.</strong>
+    <br /><br />
+    1. Clicking on the "Submit a Task" tab allows you to submit your MapReduce task from a jar file.  This jar file should contain your MapReduce task in a single class. <br /><br />
+
+    For example, below is a sample MapReduce for sorting numbers from <b>/user/I123456/randomNumbers.csv</b>. <br /><br />
+    please note that <b>/user/I123456/</b> is the default visitor HDFS folder, if you use your own account, then your MapReduce will be reading from your own personal HDFS folder.<br /><br />
+</p>
+<p class="caution">Very important: You MapReduce task should <font color=red><strong>implement ITask interface</strong></font> and have a <font color=red><strong>main()</strong></font> method like the example code shown below for job submission logic</p>
+<p class="caution">Very important: You need to call <font color=red><strong>waitForCompletion(true)</strong></font> on the job object when you submit it otherwise Task Force web application will not be able to keep your job submission history.</p>
+<br /><br />
+The following code example will try to parse each line in randomNumbers.csv into an array of numbers and
+<br /><br />
+<p>
+    <pre>
+        <code>
+package com.sap.mapred;
+
+import com.sap.hadoop.task.ITask;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import com.sap.hadoop.conf.ConfigurationManager;
+
+import java.io.IOException;
+import java.util.Iterator;
+
+public class NumberSort implements ITask {
+
+    private static String CMD_RANDOM_NUM_FILE = null;
+    <font color="grey">
+    /**
+     * The map class
+     */
+    </font>
+    public static class SortMap extends Mapper&lt;LongWritable, Text, LongWritable, IntWritable> {
+        private final static LongWritable outKey = new LongWritable(1);
+        private final static IntWritable one = new IntWritable(1);
+
+        public void map(LongWritable inKey, Text inValue, Context context) throws IOException, InterruptedException {
+
+            <font color="grey">// The file content is fed into the mapper line by line as [lineNumber, lineContent] pairs</font>
+            String line = inValue.toString();
+
+            <font color="grey">// Get numbers from the CSV</font>
+            String[] strNumbers = line.split(",");
+            for (String strNumber : strNumbers) {
+                long number = Long.parseLong(strNumber);
+                outKey.set(number);
+                <font color="grey">// Each number will has a count of 1 as the output value</font>
+                context.write(outKey, one);
+            }
+        }
+    }
+    <font color="grey">
+    /**
+     * The reduce class
+     */
+    </font>
+    public static class SortReducer
+            extends Reducer&lt;LongWritable, IntWritable, LongWritable, IntWritable> {
+        public void reduce(LongWritable inKey, Iterable&lt;IntWritable> inValues, Context context)
+                throws IOException, InterruptedException {
+            int count = 0;
+            Iterator&lt;IntWritable> iterator = inValues.iterator();
+            <font color="grey">// Each number has a list of "one"s as the value, here we sum them up</font>
+            while (iterator.hasNext()) {
+                iterator.next();
+                count++;
+            }
+            IntWritable outValue = new IntWritable(count);
+            context.write(inKey, outValue);
+        }
+    }
+
+    <font color="red">// getMapReduceJob() is defined in ITask interface and users should implement it to return a Job object</font>
+    public Job getMapReduceJob() throws Exception {
+        <font color="grey">// Get a configuration manager</font>
+        ConfigurationManager cm = new ConfigurationManager("I123456", "hadoopsap");
+
+        <font color="red"><strong>String outputFolder = cm.getRemoteFolder() + "output/";</strong></font>
+        String randomNumberFile = "randomNumbers.csv";
+
+        if (CMD_RANDOM_NUM_FILE != null) {
+            randomNumberFile = CMD_RANDOM_NUM_FILE;
+        }
+
+        <font color="grey">// The output folder MUST NOT be created, Hadoop will do it automatically</font>
+        Path outputPath = new Path(outputFolder);
+        FileSystem filesystem = outputPath.getFileSystem(cm.getConfiguration());
+        <font color="grey">// Delete the output directory if it already exists</font>
+        if (filesystem.exists(outputPath)) {
+            filesystem.delete(outputPath, true);
+        }
+
+        Job job = new Job(cm.getConfiguration(), "sort1");
+        <font color="grey">// This is a must step to tell Hadoop to load the jar file containing this class</font>
+        job.setJarByClass(NumberSort.class);
+
+        <font color="grey">// Tell Hadoop that the input is text, so Hadoop can treat each line as a string</font>
+        job.setInputFormatClass(TextInputFormat.class);
+        <font color="grey">// Tell Hadoop that the output is text, so Hadoop can write the output as strings</font>
+        job.setOutputFormatClass(TextOutputFormat.class);
+
+        <font color="grey">// Tell Hadoop the final key-value pair's types</font>
+        job.setOutputKeyClass(LongWritable.class);
+        job.setOutputValueClass(IntWritable.class);
+
+        <font color="grey">// Tell Hadoop Mapper and Reducer classes</font>
+        job.setMapperClass(NumberSort.SortMap.class);
+        job.setReducerClass(NumberSort.SortReducer.class);
+
+        <font color="grey">// Specify where the input file should be</font>
+        FileInputFormat.addInputPath(job, new Path(cm.getRemoteFolder() + randomNumberFile));
+        <font color="grey">// Specify where the output folder should be</font>
+        FileOutputFormat.setOutputPath(job, outputPath);
+
+        return job;
+    }
+    <strong>
+    <font color="red">// The main method should get a Job object from getMapReduceJob() and call waitForCompletion(true) </font>
+    public static void main(String[] args) throws Exception {
+        NumberSort ns = new NumberSort();
+        if (args != null && args.length >= 1) {
+            CMD_RANDOM_NUM_FILE = args[0];
+        }
+        <font color="grey">// Submit the job and wait for its completion</font>
+        ns.getMapReduceJob()<font color="red">.waitForCompletion(true)</font>;
+    }
+    </strong>
+}
+        </code>
+    </pre>
+<br /><br />
+
+2. You have to <a title="how to package classes into a jar file" href="http://download.oracle.com/javase/tutorial/deployment/jar/build.html" target="_new">package</a> your MapReduce task class into a jar file along with the other utility classes you used and then submit the jar file via "Upload a Jar File" button: <br /><br />
+<img src="jarUpload.png" class="screen" />
+
+<br /><br />
+
+3. After uploading your jar file, Task Force will try to parse it and you will have to select the class of your MapReduce to run: <br /><br />
+<img src="classSelect.png" class="screen" />
+
+<br /><br />
+
+4. If your MapReduce class reads parameters from the command line, you can enter them in the field labeled <strong>"Addnl. Params"</strong>: <br /><br />
+<img src="classParam.png" class="screen" />
+<br /><br />
+In this example, you want to enter "randomNumbers.csv" since that's the input file for the code.
+
+<br /><br />
+
+5. Clicking the "Submit Task" button will submit your MapReduce task to SAP Hadoop cluster and show task status below the Steps table. <br />
+   Clicking the "Refresh Status" button will update the currently submitted job's status: <br /><br />
+<img src="status.png" class="screen" />
+<br /><br />
+
+6. Clicking on the "Task History" tab brings you to the history of jobs you have submitted and clicking on the job id shows the job details at the right side: <br /><br />
+<img src="jobHistory.png" class="screen" />
+<br /><br />
+
+7. How to view the MapReduce result at HDFS?  In the above code example, the result was saved to "cm.getRemoteFolder() + output/" which is "/user/I123456/output/" if you are using visitor account.
+<br /><br />
+HDFS has a bundled UI for web accessing and it is at <a href="http://hadoop.pal.sap.corp:50070/dfshealth.jsp" target="_new">here</a>, please click "Browse the filesystem" and browse to view <strong>/user/I123456/output/part-r-00000</strong>
+
+<br /><br />
+<p class="caution">If you got a hostname not found error while browsing HDFS file system, please make sure you have completed the host name mapping described in Prerequisites</p>
+
+</p>
+<br /><br />
+
+<a name="Conclusion"></a>
+
+<h1>Conclusion</h1>
+
+<p>
+    Task Force web prototype application makes task submission easy, please come back and see more MapReduce examples in other code labs.
+</p>
+
+</div>
+<!-- end gc-pagecontent -->
+</div>
+<!-- end gooey wrapper -->
+</div>
+<!-- end codesite content -->
+<div id="gc-footer" dir="ltr">
+    <div class="text">
+        ©2011 SAP
+    </div>
+</div>
+<!-- end gc-footer -->
+
+</body>
+</html>
+

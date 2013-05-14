@@ -1,0 +1,93 @@
+img.screen {
+    width: 800px ;
+    height: 600px;
+    border-style:solid;
+    border-width:1px;
+    border-color:#98bf21;
+}
+
+img.bigScreen {
+    width: 1000px ;
+    border-style:solid;
+    border-width:1px;
+    border-color:#98bf21;
+}
+
+img.putty {
+    width: 50%;
+    height: 50%;
+}
+
+img.icon {
+    width: 40px ;
+    height: 30px;
+}
+
+td.workflow {
+    text-align:center;
+    vertical-align: middle;
+    font-family:monospace;
+}
+
+.red {
+    background-color: #ffcccc;
+}
+
+.green {
+    background-color: #99ff99;
+}
+
+.yellow {
+    background-color: #ffffcc;
+}
+
+.blue {
+    background-color: #ccffff;
+}
+
+.grey {
+    background-color: #EEEEEE;
+}
+
+.workflowStep {
+    font-family: Helvetica,Arial,sans-serif;
+    font-weight: bolder;
+    font-size: 18px;
+}
+
+.step {
+    font-family: "Times New Roman",Georgia,Serif;
+    font-size: 14px;
+}
+
+.comment {
+    color: gray;
+}
+
+.command {
+    color: black;
+    font-size: 14px;
+}
+
+.replaceCommand {
+    color: blue;
+}
+
+.inKey {
+    color: red;
+}
+.inVal {
+    color: red;
+}
+
+.outKey {
+    color: blue;
+}
+.outVal {
+    color: blue;
+}
+
+.important {
+    font-weight: bolder;
+    color: #0000ff;
+}
